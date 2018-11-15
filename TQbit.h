@@ -10,14 +10,25 @@
 #include "TMath.h"
 #endif
 
+enum base{
+    PlusMinus,
+    ZeroOne
+};
+
+
 class TQbit : public TObject {
 public:
     TQbit(bool islogic = false);
+    TQbit(const TQbit &bit);
+    TQbit &operator=(const TQbit &source);
     virtual ~TQbit();
 
     inline void GetAngle(double* theta) const {for(int qbit = 0; qbit < fPhysicsQbits; qbit++) theta[qbit] = fTheta[qbit];}
+    inline base GetBase() const {return fBase;}
+    int GetNPhysicalQbits() const {return fPhysicsQbits;}
+
+    void SetAngle(double * angle);
     inline void SetBase(base b){fBase = b;}
-    int GetNPhysicalQbits() const {return fPhysicsQbits;};
 
 private:
     double* fTheta;

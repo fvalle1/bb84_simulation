@@ -3,3 +3,4 @@
 //
 
 #include "TReceiver.h"
+ClassImp(TReceiver)

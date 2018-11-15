@@ -3,3 +3,10 @@
 //
 
 #include "TBuddy.h"
+
+ClassImp(TBuddy)
+
+void TBuddy::InterceptTQbit(base measureBase) {
+    ReceiveTQbit()
+    GenerateTQbit()
+}

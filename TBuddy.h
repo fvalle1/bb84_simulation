@@ -5,9 +5,25 @@
 #ifndef BB84_SIMULATION_TBUDDY_H
 #define BB84_SIMULATION_TBUDDY_H
 
+#if !defined(__CINT__) || defined(__MAKECINT__)
+#include "TObject.h"
+#include "TQbit.h"
+#include "TGate.h"
+#endif
 
-class TBuddy {
 
+class TBuddy : public TObject{
+public:
+
+    TQbit GenerateTQbit();
+    TQbit GenerateTQbit(double angle);
+
+    void ReceiveTQbit(TQbit qbit, base measureBase); //cambia base del qbit
+    void InterceptTQbit(base measureBase);
+
+private:
+    TGate fGate;
+ClassDef(TBuddy, 0)
 };
 
 

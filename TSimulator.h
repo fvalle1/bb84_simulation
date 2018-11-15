@@ -5,12 +5,17 @@
 #ifndef BB84_SIMULATION_SIMULATOR_H
 #define BB84_SIMULATION_SIMULATOR_H
 
+#include "TBuddy.h"
 
-class Simulator {
+bool DEBUG = true;
+
+class TSimulator {
 public:
-    Simulator();
+    TSimulator();
+    void TRunSimulation();
 private:
-    
+
+    ClassDef(TSimulator, 0)
 };
 
 
