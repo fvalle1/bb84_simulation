@@ -6,14 +6,14 @@
 class TChannel : public TObject {
   
  private:
-  double fQbit;
-  double fNoise;
+  TF1* fPdf;
+  bool fIsNoisY;
     
  public:
-  TChannel(TQbit fQbit);
+  TChannel(bool fIsNoisy);
   virtual ~TChannel();
-  TChannel AddNoise(double theta, TF1 *PdfNoise);
-  void GetQbit(double fQbit);
+  void PassQbit(TQbit* qbit);	
+  void SetNoisy(bool fIsNoisy);
   
   ClassDef(TProva,1)  
 };
