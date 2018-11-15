@@ -42,4 +42,8 @@ TQbit::~TQbit() {
 
 void TQbit::SetAngle(double * angle){
     for(int qbit = 0; qbit < fPhysicsQbits; qbit++)  fTheta[qbit] = angle[qbit];
+}
+
+void TQbit::SetAngle(double angle) {
+    for(int qbit = 0; qbit < fPhysicsQbits; qbit++)  fTheta[qbit] = angle;
 };

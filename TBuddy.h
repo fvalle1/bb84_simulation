@@ -6,7 +6,8 @@
 #define BB84_SIMULATION_TBUDDY_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include "TObject.h"
+#include <TRandom3.h>
+#include <TObject.h>
 #include "TQbit.h"
 #include "TGate.h"
 #endif
@@ -15,7 +16,7 @@
 class TBuddy : public TObject{
 public:
 
-    TQbit GenerateTQbit();
+    void GenerateTQbit(TQbit *qbit);
     TQbit GenerateTQbit(double angle);
 
     void ReceiveTQbit(TQbit qbit, base measureBase); //cambia base del qbit

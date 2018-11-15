@@ -8,5 +8,9 @@ ClassImp(TBuddy)
 
 void TBuddy::InterceptTQbit(base measureBase) {
     ReceiveTQbit()
-    GenerateTQbit()
+    GenerateTQbit(nullptr)
+}
+
+void TBuddy::GenerateTQbit(TQbit *qbit) {
+    qbit->SetAngle(gRandom->Rndm());
 }

@@ -28,6 +28,7 @@ public:
     int GetNPhysicalQbits() const {return fPhysicsQbits;}
 
     void SetAngle(double * angle);
+    void SetAngle(double angle);
     inline void SetBase(base b){fBase = b;}
 
 private:
