@@ -6,11 +6,17 @@
 
 ClassImp(TBuddy)
 
-void TBuddy::InterceptTQbit(base measureBase) {
-    ReceiveTQbit()
-    GenerateTQbit(nullptr)
+void TBuddy::InterceptTQbit(TQbit *qbit, base measureBase) {
+    ReceiveTQbit(qbit);
+    auto InterceptedBit = qbit->MeasureState(measureBase);
+    qbit->PrepareState(measureBase, InterceptedBit);
 }
 
-void TBuddy::GenerateTQbit(TQbit *qbit) {
-    qbit->SetAngle(gRandom->Rndm());
+void TBuddy::ReceiveTQbit(TQbit *qbit){
+    qbit->MeasureState(ZeroOne);
+}
+
+
+void TBuddy::PrepareTQbit(TQbit *qbit) {
+    qbit->PrepareState(ZeroOne, true);
 }

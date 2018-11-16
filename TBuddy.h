@@ -15,16 +15,11 @@
 
 class TBuddy : public TObject{
 public:
-    TBuddy(){};
+    static void PrepareTQbit(TQbit *qbit);
 
-    void GenerateTQbit(TQbit *qbit);
-    TQbit GenerateTQbit(double angle);
+    static void ReceiveTQbit(TQbit *qbit); //cambia base del qbit
+    static void InterceptTQbit(TQbit *qbit, base measureBase);
 
-    void ReceiveTQbit(TQbit qbit, base measureBase); //cambia base del qbit
-    void InterceptTQbit(base measureBase);
-
-private:
-    TGate fGate;
 ClassDef(TBuddy, 0)
 };
 

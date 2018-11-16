@@ -3,17 +3,15 @@
 //
 
 #include "TSimulator.h"
-#include "TPhone.h"
-#include "TChannel.h"
+
 
 ClassImp(TSimulator)
 
-TSimulator::TSimulator(){
-    fAlice = new TBuddy();
-    fEve = new TBuddy();
-    fBob = new TBuddy();
-    fPhone = new TPhone();
+const char* TSimulator::fFilename = "BB84_simulation.root";
+const char* TSimulator::fTreename = "Phone";
 
+
+TSimulator::TSimulator(){
     fChannels = new TChannel*[2];
 
     fChannels[0] = new TChannel();
@@ -23,28 +21,48 @@ TSimulator::TSimulator(){
 }
 
 TSimulator::~TSimulator() {
-    delete fAlice;
-    delete fEve;
-    delete fBob;
-    delete fPhone;
     delete fChannels[0];
     delete fChannels[1];
     delete[] fChannels;
+    if(TQbit::DEBUG) printf("Simulation ended\n");
 }
 
-TSimulator& TSimulator::TRunSimulation(){
+TSimulator& TSimulator::RunSimulation(){
 //hists/file
-    //for N
-//i-->N
+    printf("Running simulation..");
+    TFile file(fFilename, "RECREATE");
+    auto phone = new TPhone(fTreename);
     auto qbit = new TQbit(true);
-    fAlice->GenerateTQbit(qbit);
-    fPhone->SetQbitA(qbit);
-    fChannels[0]->PassQbit(qbit);
-    fEve->InterceptQbit(qbit);
-    fChannels[1]->PassQbit(qbit);
-    fBob->Receive();
-    fPhone->Fill(qbit);
-    delete qbit;
+
+    for (int N = 0; N < 10; ++N) {
+        phone->InitResults();
+
+        for (int i = 0; i < N; ++i) {
+            printf("\rSimulating qbits %u/%u", i + 1 , N);
+            TBuddy::PrepareTQbit(qbit);
+            phone->SetNewQbit(qbit);
+//    fChannels[0]->PassQbit(qbit);
+//    TBuddy::InterceptQbit(qbit);
+//    fChannels[1]->PassQbit(qbit);
+            TBuddy::ReceiveTQbit(qbit);
+            phone->Update(qbit);
+        }
+        phone->AddPoint();
+    }
+
+    printf("\nSaving results..\n");
+    file.Write();
+    file.Close();
+
 
     return *this;
 }
+
+TSimulator& TSimulator::ShowResults(){
+    TFile file(fFilename);
+
+
+    file.Close();
+    return *this;
+}
+

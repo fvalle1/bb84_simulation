@@ -5,25 +5,24 @@
 #ifndef BB84_SIMULATION_SIMULATOR_H
 #define BB84_SIMULATION_SIMULATOR_H
 
+#if !defined(__CINT__) || defined(__MAKECINT__)
 #include "TBuddy.h"
 #include "TChannel.h"
 #include "TPhone.h"
-
-bool DEBUG = true;
+#include <TFile.h>
+#endif
 
 class TSimulator {
 public:
     TSimulator();
     ~TSimulator();
+    TSimulator& RunSimulation();
+    TSimulator& ShowResults();
 
-    TSimulator &TRunSimulation();
 private:
-
-    TBuddy* fAlice;
-    TBuddy* fEve;
-    TBuddy* fBob;
     TChannel** fChannels;
-    TPhone* fPhone;
+    static const char* fFilename;
+    static const char* fTreename;
 
     ClassDef(TSimulator, 0)
 };

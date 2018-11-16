@@ -17,12 +17,12 @@ int compile(TString myopt = "fast"){
         opt = "kg0";
     }
 
-    gSystem->CompileMacro("TBuddy.cxx", opt.Data());
     gSystem->CompileMacro("TQbit.cxx", opt.Data());
+    gSystem->CompileMacro("TPhone.cxx", opt.Data());
+    gSystem->CompileMacro("TBuddy.cxx", opt.Data());
     gSystem->CompileMacro("TChannel.cxx", opt.Data());
-    gSystem->CompileMacro("Treceiiver.cxx", opt.Data());
-    gSystem->CompileMacro("TSimulator.cxx", opt.Data());
     gSystem->CompileMacro("TGate.cxx", opt.Data());
     gSystem->CompileMacro("TPhone.cxx", opt.Data());
+    gSystem->CompileMacro("TSimulator.cxx", opt.Data());
     return 0;
 }
