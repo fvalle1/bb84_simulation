@@ -2,6 +2,7 @@
 #define TGATE_H
 
 #include <TObject.h>
+#include "TQbit.h"
 
 class TGate : public TObject {
   
