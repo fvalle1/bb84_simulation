@@ -6,6 +6,8 @@
 #include "TPhone.h"
 #include "TChannel.h"
 
+ClassImp(TSimulator)
+
 TSimulator::TSimulator(){
     fAlice = new TBuddy();
     fEve = new TBuddy();

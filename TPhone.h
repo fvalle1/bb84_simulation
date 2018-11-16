@@ -15,7 +15,7 @@ class TPhone : public TTree {
   virtual Fill(TQbit* qbitB);
   void SetQbitA(TQbit* qbitA);
   
-  ClassDef(TProva,1)  
+  ClassDef(TPhone,0)
 };
 
 #endif
