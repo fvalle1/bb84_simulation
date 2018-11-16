@@ -2,6 +2,8 @@
 #define TCHANNEL_H
 
 #include <TObject.h>
+#include <TF1.h>
+#include "TQbit.h"
 
 class TChannel : public TObject {
   
@@ -10,12 +12,12 @@ class TChannel : public TObject {
   bool fIsNoisY;
     
  public:
-  TChannel(bool fIsNoisy);
+  TChannel(bool fIsNoisy = false);
   virtual ~TChannel();
   void PassQbit(TQbit* qbit);	
   void SetNoisy(bool fIsNoisy);
   
-  ClassDef(TProva,1)  
+  ClassDef(TChannel, 0)  
 };
 
 #endif

@@ -15,6 +15,7 @@
 
 class TBuddy : public TObject{
 public:
+    TBuddy(){};
 
     void GenerateTQbit(TQbit *qbit);
     TQbit GenerateTQbit(double angle);

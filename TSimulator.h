@@ -6,14 +6,24 @@
 #define BB84_SIMULATION_SIMULATOR_H
 
 #include "TBuddy.h"
+#include "TChannel.h"
+#include "TPhone.h"
 
 bool DEBUG = true;
 
 class TSimulator {
 public:
     TSimulator();
-    void TRunSimulation();
+    ~TSimulator();
+
+    TSimulator &TRunSimulation();
 private:
+
+    TBuddy* fAlice;
+    TBuddy* fEve;
+    TBuddy* fBob;
+    TChannel** fChannels;
+    TPhone* fPhone;
 
     ClassDef(TSimulator, 0)
 };
