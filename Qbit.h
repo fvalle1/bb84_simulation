@@ -6,46 +6,52 @@
 #define BB84_SIMULATION_QBIT_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include "TObject.h"
-#include "TMath.h"
+#include <TMath.h>
+#include <TRandom3.h>
+#include <Riostream.h>
 #endif
 
+using std::ostream;
 
-enum base{
+typedef enum base{
     PlusMinus,
     ZeroOne
-};
+} base;
 
 typedef bool polarization;
 
-class TQbit : public TObject {
+class Qbit {
 public:
-    TQbit(bool islogic = false);
-    TQbit(const TQbit &qbit);
-    TQbit &operator=(const TQbit &source);
-    virtual ~TQbit();
+    Qbit(bool islogic = false);
+    Qbit(const Qbit &qbit);
+    Qbit &operator=(const Qbit &source);
+    virtual ~Qbit();
 
     inline base GetBase() const {return fBase;}
     inline polarization GetState() const {return fState;}
     inline int GetNPhysicalQbits() const {return fPhysicsQbits;}
 
     inline void SetBase(base b){fBase = b;}
-    void SetState(polarization pol) {TQbit::fState = pol;}
 
+    void SetState(polarization pol) {Qbit::fState = pol;}
     void PrepareState(base b, polarization pol);
-    polarization MeasureState(base b);
+    void MeasureState(base b);
 
-    bool operator==(const TQbit &qitCompared) const;
-    bool operator!=(const TQbit &) const;
+    void AddNoise(){};
 
-    static const bool DEBUG = true;
+    bool operator==(const Qbit &qitCompared) const;
+    bool operator!=(const Qbit &) const;
+    friend ostream& operator<<(ostream& os, const Qbit q);
+
+    static const bool DEBUG = false;
 private:
     double* fTheta;
     base fBase;
     polarization fState;
     bool fIsLogic;
     int fPhysicsQbits;
-ClassDef(TQbit, 0)
+
+ClassDef(Qbit, 0)
 };
 
 

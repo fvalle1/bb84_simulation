@@ -11,18 +11,17 @@ int compile(TString myopt = "fast"){
     TString opt;
     if(myopt.Contains("force")) {
         opt = "kfO";
-        gSystem->SetFlagsOpt("-Wunused-parameter -Winconsistent-missing-override");
+        gSystem->SetFlagsOpt("");
     }else{
-        gSystem->SetFlagsOpt("-Wunused-parameter -Winconsistent-missing-override -O3");
+        gSystem->SetFlagsOpt("-O3");
         opt = "kg0";
     }
-
-    gSystem->CompileMacro("TQbit.cxx", opt.Data());
-    gSystem->CompileMacro("TPhone.cxx", opt.Data());
-    gSystem->CompileMacro("TBuddy.cxx", opt.Data());
-    gSystem->CompileMacro("TChannel.cxx", opt.Data());
+    gSystem->CompileMacro("Qbit.cxx", opt.Data());
+    gSystem->CompileMacro("Phone.cxx", opt.Data());
+    gSystem->CompileMacro("Buddy.cxx", opt.Data());
+    gSystem->CompileMacro("Channel.cxx", opt.Data());
     gSystem->CompileMacro("TGate.cxx", opt.Data());
-    gSystem->CompileMacro("TPhone.cxx", opt.Data());
-    gSystem->CompileMacro("TSimulator.cxx", opt.Data());
+    gSystem->CompileMacro("Phone.cxx", opt.Data());
+    gSystem->CompileMacro("Simulator.cxx", opt.Data());
     return 0;
 }

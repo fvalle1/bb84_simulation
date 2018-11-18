@@ -2,7 +2,7 @@
 #define TGATE_H
 
 #include <TObject.h>
-#include "TQbit.h"
+#include "Qbit.h"
 
 class TGate : public TObject {
   
@@ -11,7 +11,7 @@ class TGate : public TObject {
  public:
 //  TGate(base fBase = ZeroOne);
 //  virtual ~TGate();
-//  double Proiect(TQbit* fQbit, base fBase);
+//  double Proiect(Qbit* fQbit, base fBase);
 //  void GetQbit();
 //  void GetBase(base fBase);
   

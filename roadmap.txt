@@ -1,3 +1,0 @@
-1) servono davvero tre persone?
-2) serve davvero misura?
-3) forse è meglio implementare bene qbit con i cicli for sul logico per nn avere cicli for ovunque

@@ -2,10 +2,13 @@
 // Created by Filippo Valle on 14/11/2018.
 //
 
-#include "TSimulator.h"
+#include "Simulator.h"
+#include "TelegramWatch.h"
+#include "StopWatch.h"
 
 int main(){
-    TSimulator sim;
+    TelegramWatch twatch("bb84");
+    Simulator sim;
     sim.RunSimulation();
 
     return 0;
