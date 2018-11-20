@@ -38,6 +38,7 @@ private:
     static const char* fNPlotName;
     static const char* fNDistrName;
     static const char* fUsefulPlotName;
+    static const char* fPdfperLenghtCom;
     static const int fSimulations = 2000;
 
     static Simulator* fgSimulator;

@@ -14,6 +14,7 @@ const char* Simulator::fProbabilityTeoPlotName = "probability_vs_N_teo";
 const char* Simulator::fNPlotName = "N_vs_N";
 const char* Simulator::fNDistrName = "N_distr";
 const char* Simulator::fUsefulPlotName = "useful_distr";
+const char* Simulator::fPdfperLenghtCom = "PdfperLenghtCom";
 Simulator* Simulator::fgSimulator = nullptr;
 
 Simulator::Simulator(): fNqbits(100) {
@@ -98,6 +99,8 @@ Simulator* Simulator::GeneratePlots() {
 
     auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
 
+    auto PdfperLenghtCom = new TH1D(fPdfperLenghtCom, fPdfperLenghtCom, 10, 0, 1); // da scrivere
+
     auto tree = dynamic_cast<TTree*>(file.Get(fTreename));
     if(tree && !tree->IsZombie()) {
         TBranch *data = tree->GetBranch(fBranchName);
@@ -121,6 +124,10 @@ Simulator* Simulator::GeneratePlots() {
             NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
 
             Useful_distr->Fill(static_cast<double>(NSamebasis)/currentData.Ntot, distrNormFactor);
+	    if(currentData.Ntot == 50){                                                 //togliere l'if, farlo per tutti i giri del ciclo, fare il fit, salvarsi in un vettore tutte le sigma
+	      PdfperLenghtCom -> Fill(fractionOfIntercepted, 10./fSimulations);
+	    }
+	      
         }
 
         for(int nqbit = 1; nqbit <= fNqbits; nqbit++){
@@ -173,6 +180,8 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D*>(file.Get(fUsefulPlotName));
         UsefulHist->SetDirectory(nullptr);
+	auto PdfperLenghtCom = dynamic_cast<TH1D*>(file.Get(fPdfperLenghtCom));
+        PdfperLenghtCom->SetDirectory(nullptr);
 
         file.Close();
 
@@ -195,6 +204,8 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
         cx->cd(6);
         SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow-3, 5);
+	cx->cd(3);
+	SetStylesAndDraw(PdfperLenghtCom, "frac_of_intercepted", "#Simulations",  kYellow-3, 5);
 
     }else{
         std::cerr<<"TCanvas is nullptr"<<std::endl;
