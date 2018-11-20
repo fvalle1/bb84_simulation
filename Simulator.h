@@ -25,13 +25,16 @@ public:
 
 private:
     Channel** fChannels;
-    uint32_t fNqbits;
+    int fNqbits;
     static const char* fFilename;
     static const char* fTreename;
     static const char* fBranchName;
     static const char* fProbabilityPlotName;
     static const char* fProbabilityTeoPlotName;
-    static const int fSimulations = 1000;
+    static const char* fNPlotName;
+    static const char* fNDistrName;
+    static const char* fUsefulPlotName;
+    static const int fSimulations = 2000;
 
     void SetStylesAndDraw(TH1D *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
 

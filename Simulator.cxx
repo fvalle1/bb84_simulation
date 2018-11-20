@@ -12,10 +12,13 @@ const char* Simulator::fTreename = "bb84";
 const char* Simulator::fBranchName = "dataBranch";
 const char* Simulator::fProbabilityPlotName = "probability_vs_N";
 const char* Simulator::fProbabilityTeoPlotName = "probability_vs_N_teo";
+const char* Simulator::fNPlotName = "N_vs_N";
+const char* Simulator::fNDistrName = "N_distr";
+const char* Simulator::fUsefulPlotName = "useful_distr";
 
 
-Simulator::Simulator(): fNqbits(100){
-    fChannels = new Channel*[2];
+Simulator::Simulator(): fNqbits(100) {
+    fChannels = new Channel *[2];
 
     fChannels[0] = new Channel();
     //fChannels[0]->SetNoisy(TF1* pdf);
@@ -29,7 +32,7 @@ Simulator::~Simulator() {
     delete fChannels[0];
     delete fChannels[1];
     delete[] fChannels;
-    printf("\nSimulation ended\n\n");
+    printf("\nSimulation ended..\n\n");
 }
 
 Simulator& Simulator::RunSimulation(){
@@ -42,15 +45,16 @@ Simulator& Simulator::RunSimulation(){
     TFile file(fFilename, "RECREATE");
     auto tree = new TTree(fTreename, fTreename);
     tree->Branch(fBranchName, &currentData.Ntot, "Ntot/I:SameBasisIntercept:SameBasisNoIntercept");
+    tree->SetAutoSave(-10000000); //10MB
 
     auto qbit = new Qbit(true);
 
     for(int simulation = 0; simulation < fSimulations; simulation++) {
         printf("\rSimulation %u/%u", simulation+1, fSimulations);
-        for (uint32_t N = 1; N <= fNqbits; ++N) {
+        for (int N = 1; N <= fNqbits; ++N) {
             phone->InitResults(currentData);
 
-            for (uint32_t i = 1; i <= N; ++i) {
+            for (int i = 1; i <= N; ++i) {
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
@@ -61,6 +65,7 @@ Simulator& Simulator::RunSimulation(){
             }
             tree->Fill();
         }
+        file.Flush();
     }
 
     printf("\nSimulation ended..\n");
@@ -68,57 +73,77 @@ Simulator& Simulator::RunSimulation(){
     file.Close();
     delete phone;
     delete qbit;
-//    delete tree;
 
     return *this;
 }
 
 Simulator & Simulator::GeneratePlots() {
-    printf("\nSaving results..\n");
+    printf("\nGenerating plots..\n");
     TFile file(fFilename, "UPDATE");
-    auto probVsNHist = new TH1D(fProbabilityPlotName, "pN", fNqbits, 0.5, fNqbits+0.5);
-    auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, "pN_teo", fNqbits, 0.5, fNqbits+0.5);
+    if (file.IsZombie()) {
+        std::cerr << "Error opening file" << std::endl;
+        return *this;
+    }
 
-    double probVsNHist_integral = 0.;
-    double probVsNHist_teo_integral = 0.;
+    auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits+0.5);
+    auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits+0.5);
 
+    auto NVsNHist = new TH1D(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits+0.5);
+    auto NVsNHist_distr = new TH1D(fNDistrName, fNPlotName, 10, 0, 1);
+
+    auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
 
     auto tree = dynamic_cast<TTree*>(file.Get(fTreename));
-    if(tree) {
+    if(tree && !tree->IsZombie()) {
         TBranch *data = tree->GetBranch(fBranchName);
         static fStructToSave currentData;
         data->SetAddress(&currentData);
-        double simValue = 1.;
-        for (int entry = 0; entry < tree->GetEntries(); ++entry) {
+
+        double fractionOfIntercepted = 0.;
+        double distrNormFactor = 1./ fSimulations / fNqbits;
+
+        auto entries = tree->GetEntries();
+        for (int entry = 0; entry < entries; ++entry) {
+            printf("\rElaborating entry %u/%llu", entry+1, entries);
             tree->GetEvent(entry);
-            if ((currentData.SameBasisIntercept + currentData.SameBasisNoIntercept) != 0) {
-                simValue *= static_cast<double>(currentData.SameBasisIntercept) / (currentData.SameBasisIntercept + currentData.SameBasisNoIntercept);
-                probVsNHist->Fill(currentData.Ntot,simValue) ;
-                probVsNHist_integral+=simValue;
-            }else{
-                probVsNHist->Fill(currentData.Ntot, 0);
-            }
 
+            int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+            if (NSamebasis != 0)
+                fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+            else fractionOfIntercepted = 0.;
+
+            NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
+            NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+
+            Useful_distr->Fill(static_cast<double>(NSamebasis)/currentData.Ntot, distrNormFactor);
         }
 
-        for(uint32_t n = 1; n<=fNqbits; n++){
-            double teoValue=TMath::Power(0.25, static_cast<double>(n));
-            probVsNHist_teo->Fill(n, teoValue);
-            probVsNHist_teo_integral+=teoValue;
+        for(int nqbit = 1; nqbit <= fNqbits; nqbit++){
+            double teoValue=TMath::Power(0.25, nqbit);
+            probVsNHist_teo->Fill(nqbit, teoValue);
+
+            double simulatedFrac = NVsNHist->GetBinContent(nqbit);
+            probVsNHist->SetBinContent(nqbit, TMath::Power(simulatedFrac, nqbit));
+            if(Qbit::DEBUG) printf("\nn:%20.15f pow:%20.15f", simulatedFrac, TMath::Power(simulatedFrac, nqbit));
         }
 
-        probVsNHist->Scale(1. / fSimulations);
-        probVsNHist->Write();
-        probVsNHist_teo->Scale(1.);
-        probVsNHist_teo->Write();
+//        probVsNHist->Write();
+//        probVsNHist_teo->Write();
+//        NVsNHist->Write();
+//        NVsNHist_distr->Write();
+//        Useful_distr->Write();
+        file.Write();
         file.Close();
 
-        // delete probVsNHist;
     }else{
         std::cerr<<"Tree not found on file"<<std::endl;
     }
-//    delete tree;
+
 //    delete probVsNHist;
+//    delete probVsNHist_teo;
+//    delete NVsNHist;
+//    delete NVsNHist_distr;
+//    delete Useful_distr;
 
     return *this;
 }
@@ -127,17 +152,44 @@ Simulator & Simulator::ShowResults(TCanvas *cx) {
     printf("\nShowing results..\n");
     if(cx) {
         TFile file(fFilename, "READ");
+
+        if (file.IsZombie()) {
+            std::cerr << "Error opening file" << std::endl;
+            return *this;
+        }
+
         auto probVsNHist = dynamic_cast<TH1D*>(file.Get(fProbabilityPlotName));
         probVsNHist->SetDirectory(nullptr);
         auto probVsNHist_teo = dynamic_cast<TH1D*>(file.Get(fProbabilityTeoPlotName));
         probVsNHist_teo->SetDirectory(nullptr);
+        auto NVsNHist = dynamic_cast<TH1D*>(file.Get(fNPlotName));
+        NVsNHist->SetDirectory(nullptr);
+        auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(fNDistrName));
+        NVsNHist_distr->SetDirectory(nullptr);
+        auto UsefulHist = dynamic_cast<TH1D*>(file.Get(fUsefulPlotName));
+        UsefulHist->SetDirectory(nullptr);
 
         file.Close();
 
         cx->cd();
         cx->Clear();
+        cx->SetCanvasSize(900, 600);
+        cx->SetWindowSize(910, 610);
+        cx->SetTitle("bb84");
+        cx->SetName("bb84");
+        cx->Divide(3,2);
+        cx->cd(1);
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 6);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 5);
+        cx->cd(2);
+        SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
+        cx->cd(4)->SetLogy();
+        SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 6);
+        SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 5);
+        cx->cd(5);
+        SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
+        cx->cd(6);
+        SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow-3, 5);
 
     }else{
         std::cerr<<"TCanvas is nullptr"<<std::endl;
