@@ -17,8 +17,6 @@ class Channel{
   ~Channel();
   void PassQbit(Qbit* qbit);
   inline void SetNoisy(bool isNoisy){fIsNoisy = isNoisy;};
-
-  ClassDef(Channel, 0)
 };
 
 #endif

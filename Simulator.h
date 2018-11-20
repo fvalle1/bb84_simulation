@@ -17,28 +17,29 @@
 
 class Simulator {
 public:
-    static Simulator* Instance();
+    static Simulator *Instance(bool useLogicQbits);
 
     Simulator* RunSimulation();
     Simulator* GeneratePlots();
     Simulator* ShowResults(TCanvas *cx);
 
 private:
-    Simulator();
+    Simulator(bool useLogicQbits);
     ~Simulator();
     Simulator(const Simulator& source); //impedisco a compilatore di creare copy constructor
 
     Channel** fChannels;
     int fNqbits;
-    static const char* fFilename;
-    static const char* fTreename;
-    static const char* fBranchName;
-    static const char* fProbabilityPlotName;
-    static const char* fProbabilityTeoPlotName;
-    static const char* fNPlotName;
-    static const char* fNDistrName;
-    static const char* fUsefulPlotName;
-    static const char* fPdfperLenghtCom;
+    bool fUseLogicQbits;
+    static constexpr const char* fFilename = "bb84_simulation.root";
+    static constexpr const char* fTreename = "bb84";
+    static constexpr const char* fBranchName = "dataBranch";
+    static constexpr const char* fProbabilityPlotName = "probability_vs_N";
+    static constexpr const char* fProbabilityTeoPlotName = "probability_vs_N_teo";
+    static constexpr const char* fNPlotName = "N_vs_N";
+    static constexpr const char* fNDistrName = "N_distr";
+    static constexpr const char* fUsefulPlotName = "useful_distr";
+    static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
     static const int fSimulations = 2000;
 
     static Simulator* fgSimulator;

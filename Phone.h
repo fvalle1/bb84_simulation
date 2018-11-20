@@ -27,7 +27,6 @@ public:
 private:
     Qbit* fQbitA;
 
-ClassDef(Phone,0)
 };
 
 #endif

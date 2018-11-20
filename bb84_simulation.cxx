@@ -11,6 +11,6 @@
 void bb84_simulation(){
     StopWatch watch;
     auto cx = new TCanvas();
-    auto sim = Simulator::Instance();
+    auto sim = Simulator::Instance(true);
     sim->RunSimulation()->GeneratePlots()->ShowResults(cx);
 }

@@ -9,11 +9,11 @@ class TGate : public TObject {
  private:
   
  public:
-//  TGate(base fBase = ZeroOne);
+//  TGate(basis fBase = ZeroOne);
 //  virtual ~TGate();
-//  double Proiect(Qbit* fQbit, base fBase);
+//  double Proiect(Qbit* fQbit, basis fBase);
 //  void GetQbit();
-//  void GetBase(base fBase);
+//  void GetBase(basis fBase);
   
   ClassDef(TGate, 0)
 };

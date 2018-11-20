@@ -8,7 +8,7 @@
 
 int main(){
     TelegramWatch twatch("bb84");
-    auto sim = Simulator::Instance();
+    auto sim = Simulator::Instance(false);
     sim->RunSimulation()->GeneratePlots();
     return 0;
 }

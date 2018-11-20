@@ -1,7 +1,5 @@
 #include "Phone.h"
 
-ClassImp(Phone)
-
 Phone::Phone() {
     if(Qbit::DEBUG) printf("\nCreating Phone by default\n");
     fQbitA = new Qbit();

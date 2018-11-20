@@ -39,3 +39,6 @@ CMakeLists\.txt
 *~
 build
 *.root
+*.pdf
+*.png
+*.gif

@@ -15,10 +15,8 @@
 class Buddy{
 public:
     static void PrepareQbit(Qbit *qbit);
-    static void ReceiveQbit(Qbit *qbit); //cambia base del qbit
+    static void ReceiveQbit(Qbit *qbit); //cambia basis del qbit
     static void InterceptQbit(Qbit *qbit);
-
-ClassDef(Buddy, 0)
 };
 
 

@@ -4,8 +4,6 @@
 
 #include "Buddy.h"
 
-ClassImp(Buddy)
-
 void Buddy::InterceptQbit(Qbit *qbit) {
     if(Qbit::DEBUG) {
         printf("\n\n**********\nIntercepting qbit..\n");
@@ -20,7 +18,7 @@ void Buddy::ReceiveQbit(Qbit *qbit){
         printf("\n\n**********\nReceiving qbit..\n");
         std::cout << "received qbit: " << *qbit << std::endl;
     }
-    base measuringBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);
+    basis measuringBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);
     qbit->MeasureState(measuringBase);
     if(Qbit::DEBUG) std::cout << "measured qbit: " << *qbit << std::endl;
 }
@@ -31,7 +29,7 @@ void Buddy::PrepareQbit(Qbit *qbit) {
         printf("\n\n**********\nPreparing qbit..\n");
         std::cout << "received qbit: " << *qbit << std::endl;
     }
-    base preparingBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);
+    basis preparingBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);
     polarization preparingPol = (gRandom->Rndm()<0.5);
     qbit->PrepareState(preparingBase, preparingPol);
 }

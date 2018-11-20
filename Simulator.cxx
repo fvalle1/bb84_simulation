@@ -4,24 +4,16 @@
 
 #include "Simulator.h"
 
-ClassImp(Simulator)
-
-const char* Simulator::fFilename = "bb84_simulation.root";
-const char* Simulator::fTreename = "bb84";
-const char* Simulator::fBranchName = "dataBranch";
-const char* Simulator::fProbabilityPlotName = "probability_vs_N";
-const char* Simulator::fProbabilityTeoPlotName = "probability_vs_N_teo";
-const char* Simulator::fNPlotName = "N_vs_N";
-const char* Simulator::fNDistrName = "N_distr";
-const char* Simulator::fUsefulPlotName = "useful_distr";
-const char* Simulator::fPdfperLenghtCom = "PdfperLenghtCom";
 Simulator* Simulator::fgSimulator = nullptr;
 
-Simulator::Simulator(): fNqbits(100) {
+Simulator::Simulator(bool useLogicQbits) :
+        fNqbits(100),
+        fUseLogicQbits(useLogicQbits)
+{
     fChannels = new Channel *[2];
 
     fChannels[0] = new Channel();
-    //fChannels[0]->SetNoisy(TF1* pdf);
+    fChannels[0]->SetNoisy(true);
     fChannels[1] = new Channel();
 
     gStyle->SetOptStat(00000000);
@@ -35,8 +27,8 @@ Simulator::~Simulator() {
     printf("\nSimulation ended..\n\n");
 }
 
-Simulator* Simulator::Instance(){
-    if(!fgSimulator) fgSimulator = new Simulator();
+Simulator * Simulator::Instance(bool useLogicQbits) {
+    if(!fgSimulator) fgSimulator = new Simulator(useLogicQbits);
     return fgSimulator;
 }
 
@@ -53,7 +45,7 @@ Simulator* Simulator::RunSimulation(){
     tree->Branch(fBranchName, &currentData.Ntot, "Ntot/I:SameBasisIntercept:SameBasisNoIntercept");
     tree->SetAutoSave(-10000000); //10MB
 
-    auto qbit = new Qbit(true);
+    auto qbit = new Qbit(fUseLogicQbits);
 
     for(int simulation = 0; simulation < fSimulations; simulation++) {
         printf("\rSimulation %u/%u", simulation+1, fSimulations);
@@ -124,10 +116,10 @@ Simulator* Simulator::GeneratePlots() {
             NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
 
             Useful_distr->Fill(static_cast<double>(NSamebasis)/currentData.Ntot, distrNormFactor);
-	    if(currentData.Ntot == 50){                                                 //togliere l'if, farlo per tutti i giri del ciclo, fare il fit, salvarsi in un vettore tutte le sigma
-	      PdfperLenghtCom -> Fill(fractionOfIntercepted, 10./fSimulations);
-	    }
-	      
+            if(currentData.Ntot == 50){                                                 //togliere l'if, farlo per tutti i giri del ciclo, fare il fit, salvarsi in un vettore tutte le sigma
+                PdfperLenghtCom -> Fill(fractionOfIntercepted, 10./fSimulations);
+            }
+
         }
 
         for(int nqbit = 1; nqbit <= fNqbits; nqbit++){
@@ -180,7 +172,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D*>(file.Get(fUsefulPlotName));
         UsefulHist->SetDirectory(nullptr);
-	auto PdfperLenghtCom = dynamic_cast<TH1D*>(file.Get(fPdfperLenghtCom));
+        auto PdfperLenghtCom = dynamic_cast<TH1D*>(file.Get(fPdfperLenghtCom));
         PdfperLenghtCom->SetDirectory(nullptr);
 
         file.Close();
@@ -204,8 +196,8 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
         cx->cd(6);
         SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow-3, 5);
-	cx->cd(3);
-	SetStylesAndDraw(PdfperLenghtCom, "frac_of_intercepted", "#Simulations",  kYellow-3, 5);
+        cx->cd(3);
+        SetStylesAndDraw(PdfperLenghtCom, "frac_of_intercepted", "#Simulations",  kYellow-3, 5);
 
     }else{
         std::cerr<<"TCanvas is nullptr"<<std::endl;

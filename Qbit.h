@@ -13,10 +13,10 @@
 
 using std::ostream;
 
-typedef enum base{
+typedef enum basis{
     PlusMinus,
     ZeroOne
-} base;
+} basis;
 
 typedef bool polarization;
 
@@ -27,31 +27,34 @@ public:
     Qbit &operator=(const Qbit &source);
     virtual ~Qbit();
 
-    inline base GetBase() const {return fBase;}
+    inline basis GetBase() const {return fBase;}
     inline polarization GetState() const {return fState;}
     inline int GetNPhysicalQbits() const {return fPhysicsQbits;}
 
-    inline void SetBase(base b){fBase = b;}
+    inline void SetBase(basis b){fBase = b;}
 
     void SetState(polarization pol) {Qbit::fState = pol;}
-    void PrepareState(base b, polarization pol);
-    void MeasureState(base b);
+    void PrepareState(basis b, polarization pol);
+    void MeasureState(basis b);
 
-    void AddNoise(){};
+    void AddNoise();
 
     bool operator==(const Qbit &qitCompared) const;
     bool operator!=(const Qbit &) const;
-    friend ostream& operator<<(ostream& os, const Qbit q);
+    friend ostream& operator<<(ostream& os, Qbit q);
 
     static const bool DEBUG = false;
+
 private:
     double* fTheta;
-    base fBase;
+    basis fBase;
     polarization fState;
     bool fIsLogic;
     int fPhysicsQbits;
+    static constexpr double fSindromeEpsilon = 0.0001;
 
-ClassDef(Qbit, 0)
+    void PrepareTheta();
+    void MeasurePhisicalqbit(int q);
 };
 
 
