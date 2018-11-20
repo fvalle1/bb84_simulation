@@ -17,13 +17,17 @@
 
 class Simulator {
 public:
-    Simulator();
-    ~Simulator();
-    Simulator& RunSimulation();
-    Simulator &GeneratePlots();
-    Simulator &ShowResults(TCanvas *cx);
+    static Simulator* Instance();
+
+    Simulator* RunSimulation();
+    Simulator* GeneratePlots();
+    Simulator* ShowResults(TCanvas *cx);
 
 private:
+    Simulator();
+    ~Simulator();
+    Simulator(const Simulator& source); //impedisco a compilatore di creare copy constructor
+
     Channel** fChannels;
     int fNqbits;
     static const char* fFilename;
@@ -35,6 +39,8 @@ private:
     static const char* fNDistrName;
     static const char* fUsefulPlotName;
     static const int fSimulations = 2000;
+
+    static Simulator* fgSimulator;
 
     void SetStylesAndDraw(TH1D *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
 

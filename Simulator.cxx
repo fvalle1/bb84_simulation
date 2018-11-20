@@ -4,7 +4,6 @@
 
 #include "Simulator.h"
 
-
 ClassImp(Simulator)
 
 const char* Simulator::fFilename = "bb84_simulation.root";
@@ -15,7 +14,7 @@ const char* Simulator::fProbabilityTeoPlotName = "probability_vs_N_teo";
 const char* Simulator::fNPlotName = "N_vs_N";
 const char* Simulator::fNDistrName = "N_distr";
 const char* Simulator::fUsefulPlotName = "useful_distr";
-
+Simulator* Simulator::fgSimulator = nullptr;
 
 Simulator::Simulator(): fNqbits(100) {
     fChannels = new Channel *[2];
@@ -35,7 +34,13 @@ Simulator::~Simulator() {
     printf("\nSimulation ended..\n\n");
 }
 
-Simulator& Simulator::RunSimulation(){
+Simulator* Simulator::Instance(){
+    if(!fgSimulator) fgSimulator = new Simulator();
+    return fgSimulator;
+}
+
+
+Simulator* Simulator::RunSimulation(){
 //hists/file
     printf("\nRunning simulation..\n");
     auto phone = new Phone();
@@ -74,15 +79,15 @@ Simulator& Simulator::RunSimulation(){
     delete phone;
     delete qbit;
 
-    return *this;
+    return this;
 }
 
-Simulator & Simulator::GeneratePlots() {
+Simulator* Simulator::GeneratePlots() {
     printf("\nGenerating plots..\n");
     TFile file(fFilename, "UPDATE");
     if (file.IsZombie()) {
         std::cerr << "Error opening file" << std::endl;
-        return *this;
+        return this;
     }
 
     auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits+0.5);
@@ -104,7 +109,7 @@ Simulator & Simulator::GeneratePlots() {
 
         auto entries = tree->GetEntries();
         for (int entry = 0; entry < entries; ++entry) {
-            printf("\rElaborating entry %u/%llu", entry+1, entries);
+            printf("\r%u/%llu", entry+1, entries);
             tree->GetEvent(entry);
 
             int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
@@ -145,17 +150,17 @@ Simulator & Simulator::GeneratePlots() {
 //    delete NVsNHist_distr;
 //    delete Useful_distr;
 
-    return *this;
+    return this;
 }
 
-Simulator & Simulator::ShowResults(TCanvas *cx) {
+Simulator* Simulator::ShowResults(TCanvas *cx) {
     printf("\nShowing results..\n");
     if(cx) {
         TFile file(fFilename, "READ");
 
         if (file.IsZombie()) {
             std::cerr << "Error opening file" << std::endl;
-            return *this;
+            return this;
         }
 
         auto probVsNHist = dynamic_cast<TH1D*>(file.Get(fProbabilityPlotName));
@@ -194,7 +199,7 @@ Simulator & Simulator::ShowResults(TCanvas *cx) {
     }else{
         std::cerr<<"TCanvas is nullptr"<<std::endl;
     }
-    return *this;
+    return this;
 }
 
 void Simulator::SetStylesAndDraw(TH1D *hist, const char *xLabel, const char *ylabel, Color_t color,
