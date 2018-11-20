@@ -38,3 +38,4 @@ CMakeLists\.txt
 *.pcm
 *~
 build
+*.root
