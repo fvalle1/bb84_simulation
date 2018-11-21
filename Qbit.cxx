@@ -38,7 +38,6 @@ Qbit::Qbit(const Qbit &qbit) : fPhysicsQbits(qbit.fPhysicsQbits),
 
 Qbit &Qbit::operator=(const Qbit &source) {
     if(Qbit::DEBUG) printf("\nCopying qbit with operator=..\n");
-
     if(this == &source) return *this;
     this->~Qbit();
     new(this) Qbit(source);
@@ -76,11 +75,11 @@ void Qbit::PrepareTheta() {
             angleToSet = TMath::PiOver4();
         }else{
 //preparing state |->
-            angleToSet = -TMath::PiOver4();
+            angleToSet = - TMath::PiOver4();
         }
     }
-    //note: logic qbit have all 3 physical qbits identical after preparation
-    for(int qbit = 0; qbit < fPhysicsQbits; qbit++){ fTheta[qbit] = angleToSet;}
+    //note: logic qbits have all 3 physical qbits identical after preparation
+    for(int qbit = 0; qbit < fPhysicsQbits; qbit++){fTheta[qbit] = angleToSet;}
 }
 
 void Qbit::MeasureState(basis b) {
@@ -91,31 +90,33 @@ void Qbit::MeasureState(basis b) {
 
     //Measuring basis PlusMinus is the same as measuring with a ZeroOne filter
     //the qubit rotated by 45grad anticlockwise
-    if (b == PlusMinus) for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit] += TMath::PiOver4();
+    if (b == PlusMinus) for(int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit] += TMath::PiOver4();
     if (!fIsLogic) {
-        MeasurePhisicalqbit(0);
+        fState = MeasurePhisicalqbit(0);
     }else{
-        bool sindrome01 = fabs(fTheta[0]-fTheta[1]) < fSindromeEpsilon;
-        bool sindrome12 = fabs(fTheta[1]-fTheta[2]) < fSindromeEpsilon;
+        polarization measures[fPhysicsQbits];
+        for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) measures[iqbit] = MeasurePhisicalqbit(iqbit);
+        bool sindrome01 = measures[0] == measures[1];
+        bool sindrome12 = measures[1] == measures[2];
         if(sindrome01){//0 e 1 are the same --> measure 0 (eg 001)
-            MeasurePhisicalqbit(0);
+            measures[0];
         }else{//0 e 1 are different
             if(sindrome12){ //1 e 2 are the same --> measure 1 (011)
-                MeasurePhisicalqbit(2);
+                measures[1];
             }else{//both 0 and 1 , 1 and 2 are different --> measure 0 (010)
-                MeasurePhisicalqbit(0);
+                measures[0];
             }
         }
     }
     PrepareTheta();
 }
 
-void Qbit::MeasurePhisicalqbit(int q) {
+polarization Qbit::MeasurePhisicalqbit(int q) {
     double cosTheta = TMath::Cos(fTheta[q]);
     //Return the polarization of the object
 //if basis is ZeroOne state is cos() |0> + sin() |1>
 //it is zero (aka down or false) with probability cos*cos
-    fState = gRandom->Rndm() > cosTheta * cosTheta;
+    return fState = gRandom->Rndm() > cosTheta * cosTheta;
 }
 
 bool Qbit::operator==(const Qbit &qitCompared) const {

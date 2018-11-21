@@ -51,10 +51,9 @@ private:
     polarization fState;
     bool fIsLogic;
     int fPhysicsQbits;
-    static constexpr double fSindromeEpsilon = 0.0001;
 
     void PrepareTheta();
-    void MeasurePhisicalqbit(int q);
+    polarization MeasurePhisicalqbit(int q);
 };
 
 

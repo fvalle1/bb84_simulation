@@ -6,7 +6,7 @@
 
 void Buddy::InterceptQbit(Qbit *qbit) {
     if(Qbit::DEBUG) {
-        printf("\n\n**********\nIntercepting qbit..\n");
+        printf("\nIntercepting qbit..\n");
         std::cout << "received qbit: " << *qbit << std::endl;
     }
     ReceiveQbit(qbit);
@@ -15,7 +15,7 @@ void Buddy::InterceptQbit(Qbit *qbit) {
 
 void Buddy::ReceiveQbit(Qbit *qbit){
     if(Qbit::DEBUG) {
-        printf("\n\n**********\nReceiving qbit..\n");
+        printf("\nReceiving qbit..\n");
         std::cout << "received qbit: " << *qbit << std::endl;
     }
     basis measuringBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);

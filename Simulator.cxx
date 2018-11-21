@@ -2,6 +2,7 @@
 // Created by Filippo Valle on 15/11/2018.
 //
 
+#include <TGraphErrors.h>
 #include "Simulator.h"
 
 Simulator* Simulator::fgSimulator = nullptr;
@@ -86,7 +87,7 @@ Simulator* Simulator::GeneratePlots() {
     auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits+0.5);
     auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits+0.5);
 
-    auto NVsNHist = new TH1D(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits+0.5);
+    auto NVsNHist = new TGraphErrors(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits+0.5);
     auto NVsNHist_distr = new TH1D(fNDistrName, fNPlotName, 10, 0, 1);
 
     auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
