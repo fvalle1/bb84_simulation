@@ -99,12 +99,12 @@ void Qbit::MeasureState(basis b) {
         bool sindrome01 = measures[0] == measures[1];
         bool sindrome12 = measures[1] == measures[2];
         if(sindrome01){//0 e 1 are the same --> measure 0 (eg 001)
-            measures[0];
+            fState = measures[0];
         }else{//0 e 1 are different
             if(sindrome12){ //1 e 2 are the same --> measure 1 (011)
-                measures[1];
+                fState = measures[1];
             }else{//both 0 and 1 , 1 and 2 are different --> measure 0 (010)
-                measures[0];
+                fState = measures[0];
             }
         }
     }

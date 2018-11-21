@@ -17,7 +17,7 @@
 
 class Simulator {
 public:
-    static Simulator *Instance(bool useLogicQbits);
+    static Simulator *Instance(bool useLogicQbits = false);
 
     Simulator* RunSimulation();
     Simulator* GeneratePlots();
@@ -44,7 +44,7 @@ private:
 
     static Simulator* fgSimulator;
 
-    void SetStylesAndDraw(TH1D *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
+    void SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
 
 ClassDef(Simulator, 0)
 };

@@ -87,7 +87,8 @@ Simulator* Simulator::GeneratePlots() {
     auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits+0.5);
     auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits+0.5);
 
-    auto NVsNHist = new TGraphErrors(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits+0.5);
+    auto NVsNPlot = new TGraphErrors(fNqbits);
+    int NVsHPlotiPoint = 0;
     auto NVsNHist_distr = new TH1D(fNDistrName, fNPlotName, 10, 0, 1);
 
     auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
@@ -113,7 +114,9 @@ Simulator* Simulator::GeneratePlots() {
                 fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
             else fractionOfIntercepted = 0.;
 
-            NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
+            NVsNPlot->SetPoint(NVsHPlotiPoint, currentData.Ntot, fractionOfIntercepted / fSimulations);
+            NVsNPlot->SetPointError(NVsHPlotiPoint++, 0, sqrt(fractionOfIntercepted / fSimulations));
+
             NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
 
             Useful_distr->Fill(static_cast<double>(NSamebasis)/currentData.Ntot, distrNormFactor);
@@ -127,14 +130,16 @@ Simulator* Simulator::GeneratePlots() {
             double teoValue=TMath::Power(0.25, nqbit);
             probVsNHist_teo->Fill(nqbit, teoValue);
 
-            double simulatedFrac = NVsNHist->GetBinContent(nqbit);
+            double simulatedFrac, fakeN;
+            NVsNPlot->GetPoint(nqbit, fakeN, simulatedFrac);
             probVsNHist->SetBinContent(nqbit, TMath::Power(simulatedFrac, nqbit));
             if(Qbit::DEBUG) printf("\nn:%20.15f pow:%20.15f", simulatedFrac, TMath::Power(simulatedFrac, nqbit));
         }
 
+        NVsNPlot->Write(fNPlotName, TObject::kOverwrite | TObject::kSingleKey); //salvo solo ultima versione
 //        probVsNHist->Write();
 //        probVsNHist_teo->Write();
-//        NVsNHist->Write();
+//        NVsNPlot->Write();
 //        NVsNHist_distr->Write();
 //        Useful_distr->Write();
         file.Write();
@@ -146,7 +151,7 @@ Simulator* Simulator::GeneratePlots() {
 
 //    delete probVsNHist;
 //    delete probVsNHist_teo;
-//    delete NVsNHist;
+    delete NVsNPlot;
 //    delete NVsNHist_distr;
 //    delete Useful_distr;
 
@@ -167,8 +172,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         probVsNHist->SetDirectory(nullptr);
         auto probVsNHist_teo = dynamic_cast<TH1D*>(file.Get(fProbabilityTeoPlotName));
         probVsNHist_teo->SetDirectory(nullptr);
-        auto NVsNHist = dynamic_cast<TH1D*>(file.Get(fNPlotName));
-        NVsNHist->SetDirectory(nullptr);
+        auto NVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fNPlotName));
         auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(fNDistrName));
         NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D*>(file.Get(fUsefulPlotName));
@@ -206,14 +210,23 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
     return this;
 }
 
-void Simulator::SetStylesAndDraw(TH1D *hist, const char *xLabel, const char *ylabel, Color_t color,
+void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color,
                                  Width_t linewidth) const {
     if (hist) {
-        hist->Draw("hist same c");
-        hist->GetXaxis()->SetTitle(xLabel);
-        hist->GetYaxis()->SetTitle(ylabel);
-        hist->SetLineWidth(linewidth);
-        hist->SetLineColor(color);
+        if(hist->InheritsFrom("TH1")){
+            dynamic_cast<TH1*>(hist)->Draw("hist same c");
+            dynamic_cast<TH1*>(hist)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TH1*>(hist)->GetYaxis()->SetTitle(ylabel);
+            dynamic_cast<TH1*>(hist)->SetLineWidth(linewidth);
+            dynamic_cast<TH1*>(hist)->SetLineColor(color);
+        }
+        if(hist->InheritsFrom("TGraph")){
+            dynamic_cast<TGraph*>(hist)->Draw("APL same");
+            dynamic_cast<TGraph*>(hist)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TGraph*>(hist)->GetYaxis()->SetTitle(ylabel);
+            dynamic_cast<TGraph*>(hist)->SetLineWidth(linewidth);
+            dynamic_cast<TGraph*>(hist)->SetLineColor(color);
+        }
     }
 }
 
