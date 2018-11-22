@@ -4,6 +4,7 @@
 
 #include <TGraphErrors.h>
 #include "Simulator.h"
+#include <stdio.h>
 
 Simulator* Simulator::fgSimulator = nullptr;
 
@@ -14,7 +15,7 @@ Simulator::Simulator(bool useLogicQbits) :
     fChannels = new Channel *[2];
 
     fChannels[0] = new Channel();
-    fChannels[0]->SetNoisy(true);
+    fChannels[0]->SetNoisy(false);
     fChannels[1] = new Channel();
 
     gStyle->SetOptStat(00000000);
@@ -92,8 +93,12 @@ Simulator* Simulator::GeneratePlots() {
     auto NVsNHist_distr = new TH1D(fNDistrName, fNPlotName, 10, 0, 1);
 
     auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
-
-    auto PdfperLenghtCom = new TH1D(fPdfperLenghtCom, fPdfperLenghtCom, 10, 0, 1); // da scrivere
+    auto PdfperLenghtCom = new TH1D*[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
+    char title[50];
+    for(int i=0; i<fNqbits; i++){
+        sprintf(title, "PdfperLenghtCom_%d", i);
+        PdfperLenghtCom[i] = new TH1D(title, title, 50, 0, 1);
+    }
 
     auto tree = dynamic_cast<TTree*>(file.Get(fTreename));
     if(tree && !tree->IsZombie()) {
@@ -117,33 +122,52 @@ Simulator* Simulator::GeneratePlots() {
             NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
 
             Useful_distr->Fill(static_cast<double>(NSamebasis)/currentData.Ntot, distrNormFactor);
-            if(currentData.Ntot == 50){                                                 //togliere l'if, farlo per tutti i giri del ciclo, fare il fit, salvarsi in un vettore tutte le sigma
-                PdfperLenghtCom -> Fill(fractionOfIntercepted, 10./fSimulations);
-            }
 
+            PdfperLenghtCom[entry%fNqbits] -> Fill(fractionOfIntercepted, 1./fSimulations);
         }
 
-        for(int nqbit = 1; nqbit <= fNqbits; nqbit++){
-            double teoValue=TMath::Power(0.25, nqbit);
-            probVsNHist_teo->Fill(nqbit, teoValue);
-
-            double simulatedFrac, fakeN;
 
 
-            NVsNPlot->SetPoint(NVsHPlotiPoint, nqbit, 1);
-            NVsNPlot->SetPointError(NVsHPlotiPoint++, 0, 0.25);
 
-            NVsNPlot->GetPoint(nqbit, fakeN, simulatedFrac);
-            probVsNHist->SetBinContent(nqbit, TMath::Power(simulatedFrac, nqbit));
-            if(Qbit::DEBUG) printf("\nn:%20.15f pow:%20.15f", simulatedFrac, TMath::Power(simulatedFrac, nqbit));
+
+        auto fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);
+        for(int iqbit=0; iqbit<fNqbits; iqbit++){
+            PdfperLenghtCom[iqbit]->Fit("fit_gaus", "Q0");
+            double mean_PdfperLenght = fit_gaus->GetParameter("Mean");
+            double sigma_PdfperLenght = fit_gaus->GetParameter("Sigma");
+
+
+            NVsNPlot->SetPoint(NVsHPlotiPoint, iqbit, mean_PdfperLenght);
+            NVsNPlot->SetPointError(NVsHPlotiPoint++, sigma_PdfperLenght, 0);
         }
 
-        NVsNPlot->Write(fNPlotName, TObject::kOverwrite | TObject::kSingleKey); //salvo solo ultima versione
+        NVsHPlotiPoint = 0;
+        for (int iqbit = 0; iqbit < fNqbits; ++iqbit) {
+            double teoValue=TMath::Power(0.25, iqbit);
+            double fakeN, simPercentage;
+
+            probVsNHist_teo->Fill(iqbit, teoValue);
+
+            NVsNPlot->GetPoint(NVsHPlotiPoint++, fakeN, simPercentage);
+            double simValue = TMath::Power(simPercentage, iqbit);
+
+            probVsNHist->Fill(iqbit, simValue);
+        }
+
+
+
+//        for(int i=0; i<fNqbits; i++){
+//            delete PdfperLenghtCom[i];
+//        }
+//        delete[] PdfperLenghtCom;
+        delete fit_gaus;
+
 //        probVsNHist->Write();
 //        probVsNHist_teo->Write();
 //        NVsNPlot->Write();
 //        NVsNHist_distr->Write();
 //        Useful_distr->Write();
+        NVsNPlot->Write(fNPlotName, TObject::kOverwrite | TObject::kSingleKey); //salvo solo ultima versione
         file.Write();
         file.Close();
 
@@ -179,8 +203,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D*>(file.Get(fUsefulPlotName));
         UsefulHist->SetDirectory(nullptr);
-        auto PdfperLenghtCom = dynamic_cast<TH1D*>(file.Get(fPdfperLenghtCom));
-        PdfperLenghtCom->SetDirectory(nullptr);
+
 
         file.Close();
 
@@ -195,7 +218,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 6);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 5);
         cx->cd(2);
-        SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
+        SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         cx->cd(4)->SetLogy();
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 6);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 5);
@@ -203,8 +226,6 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
         cx->cd(6);
         SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow-3, 5);
-        cx->cd(3);
-        SetStylesAndDraw(PdfperLenghtCom, "frac_of_intercepted", "#Simulations",  kYellow-3, 5);
 
     }else{
         std::cerr<<"TCanvas is nullptr"<<std::endl;
@@ -223,7 +244,7 @@ void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *
             dynamic_cast<TH1*>(hist)->SetLineColor(color);
         }
         if(hist->InheritsFrom("TGraph")){
-            dynamic_cast<TGraph*>(hist)->Draw("APL same");
+            dynamic_cast<TGraph*>(hist)->Draw("APE same");
             dynamic_cast<TGraph*>(hist)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TGraph*>(hist)->GetYaxis()->SetTitle(ylabel);
             dynamic_cast<TGraph*>(hist)->SetLineWidth(linewidth);
@@ -232,3 +253,20 @@ void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *
     }
 }
 
+/*
+Simulator* Simulator::PlotSigmas() {
+  auto PdfperLenghtCom = new TH1D*[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 10, 0, 1);
+  char title[50];
+  for(int i=0; i<fNqbits; i++){
+    sprintf(title, "fPdfperLenghtCo_%d", i);
+    PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
+  }
+
+
+  auto PdfperLenghtCom = dynamic_cast<TH1D*>(file.Get(fPdfperLenghtCom));
+  PdfperLenghtCom->SetDirectory(nullptr);
+
+
+  
+}
+*/
