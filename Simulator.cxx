@@ -114,9 +114,6 @@ Simulator* Simulator::GeneratePlots() {
                 fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
             else fractionOfIntercepted = 0.;
 
-            NVsNPlot->SetPoint(NVsHPlotiPoint, currentData.Ntot, fractionOfIntercepted / fSimulations);
-            NVsNPlot->SetPointError(NVsHPlotiPoint++, 0, sqrt(fractionOfIntercepted / fSimulations));
-
             NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
 
             Useful_distr->Fill(static_cast<double>(NSamebasis)/currentData.Ntot, distrNormFactor);
@@ -131,6 +128,11 @@ Simulator* Simulator::GeneratePlots() {
             probVsNHist_teo->Fill(nqbit, teoValue);
 
             double simulatedFrac, fakeN;
+
+
+            NVsNPlot->SetPoint(NVsHPlotiPoint, nqbit, 1);
+            NVsNPlot->SetPointError(NVsHPlotiPoint++, 0, 0.25);
+
             NVsNPlot->GetPoint(nqbit, fakeN, simulatedFrac);
             probVsNHist->SetBinContent(nqbit, TMath::Power(simulatedFrac, nqbit));
             if(Qbit::DEBUG) printf("\nn:%20.15f pow:%20.15f", simulatedFrac, TMath::Power(simulatedFrac, nqbit));
