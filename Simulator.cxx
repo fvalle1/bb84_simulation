@@ -85,7 +85,7 @@ Simulator* Simulator::GeneratePlots() {
         return this;
     }
 
-    auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits+0.5);
+    auto probVsNHist = new TGraphErrors(fNqbits);
     auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits+0.5);
 
     auto NVsNPlot = new TGraphErrors(fNqbits);
@@ -131,6 +131,7 @@ Simulator* Simulator::GeneratePlots() {
 
 
         auto fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);
+        fit_gaus->SetParameter("Mean", 0.25);
         for(int iqbit=0; iqbit<fNqbits; iqbit++){
             PdfperLenghtCom[iqbit]->Fit("fit_gaus", "Q0");
             double mean_PdfperLenght = fit_gaus->GetParameter("Mean");
@@ -138,7 +139,7 @@ Simulator* Simulator::GeneratePlots() {
 
 
             NVsNPlot->SetPoint(NVsHPlotiPoint, iqbit, mean_PdfperLenght);
-            NVsNPlot->SetPointError(NVsHPlotiPoint++, sigma_PdfperLenght, 0);
+            NVsNPlot->SetPointError(NVsHPlotiPoint++, 0, sigma_PdfperLenght);
         }
 
         NVsHPlotiPoint = 0;
@@ -148,26 +149,25 @@ Simulator* Simulator::GeneratePlots() {
 
             probVsNHist_teo->Fill(iqbit, teoValue);
 
-            NVsNPlot->GetPoint(NVsHPlotiPoint++, fakeN, simPercentage);
+            NVsNPlot->GetPoint(NVsHPlotiPoint, fakeN, simPercentage);
             double simValue = TMath::Power(simPercentage, iqbit);
+            double simValueError = iqbit * simValue / simPercentage;
 
-            probVsNHist->Fill(iqbit, simValue);
+            probVsNHist->SetPoint(NVsHPlotiPoint, iqbit, simValue);
+
+            NVsHPlotiPoint++;
         }
 
 
 
-//        for(int i=0; i<fNqbits; i++){
-//            delete PdfperLenghtCom[i];
-//        }
-//        delete[] PdfperLenghtCom;
+        for(int i=0; i<fNqbits; i++){
+            delete PdfperLenghtCom[i];
+        }
+        delete[] PdfperLenghtCom;
         delete fit_gaus;
 
-//        probVsNHist->Write();
-//        probVsNHist_teo->Write();
-//        NVsNPlot->Write();
-//        NVsNHist_distr->Write();
-//        Useful_distr->Write();
         NVsNPlot->Write(fNPlotName, TObject::kOverwrite | TObject::kSingleKey); //salvo solo ultima versione
+        probVsNHist->Write(fProbabilityPlotName, TObject::kOverwrite | TObject::kSingleKey);
         file.Write();
         file.Close();
 
@@ -175,7 +175,7 @@ Simulator* Simulator::GeneratePlots() {
         std::cerr<<"Tree not found on file"<<std::endl;
     }
 
-//    delete probVsNHist;
+    delete probVsNHist;
 //    delete probVsNHist_teo;
     delete NVsNPlot;
 //    delete NVsNHist_distr;
@@ -194,8 +194,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
             return this;
         }
 
-        auto probVsNHist = dynamic_cast<TH1D*>(file.Get(fProbabilityPlotName));
-        probVsNHist->SetDirectory(nullptr);
+        auto probVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fProbabilityPlotName));
         auto probVsNHist_teo = dynamic_cast<TH1D*>(file.Get(fProbabilityTeoPlotName));
         probVsNHist_teo->SetDirectory(nullptr);
         auto NVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fNPlotName));
@@ -248,7 +247,10 @@ void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *
             dynamic_cast<TGraph*>(hist)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TGraph*>(hist)->GetYaxis()->SetTitle(ylabel);
             dynamic_cast<TGraph*>(hist)->SetLineWidth(linewidth);
+            dynamic_cast<TGraph*>(hist)->SetMarkerSize(0.8);
+            dynamic_cast<TGraph*>(hist)->SetMarkerStyle(20);
             dynamic_cast<TGraph*>(hist)->SetLineColor(color);
+            dynamic_cast<TGraph*>(hist)->SetMarkerColor(color);
         }
     }
 }
