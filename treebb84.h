@@ -20,22 +20,22 @@
 // Headers needed by this particular selector
 
 
-class treebb84 : public TSelector {
-  public :
-  TTreeReader     fReader;  //!the tree reader
+class treebb84 : public TSelector {                   // To benefit from many ROOT features (e.g. PROOF and PROOF-lite) you should use a class deriving from the TSelector to analyze a TTree
+ public :
+  TTreeReader     fReader;      //!the tree reader
   TTree          *fChain = 0;   //!pointer to the analyzed TTree or TChain
-
+  
   // Readers to access the data (delete the ones you do not need).
   TTreeReaderValue<Int_t> Ntot = {fReader, "dataBranch.Ntot"};
   TTreeReaderValue<Int_t> SameBasisIntercept = {fReader, "dataBranch.SameBasisIntercept"};
   TTreeReaderValue<Int_t> SameBasisNoIntercept = {fReader, "dataBranch.SameBasisNoIntercept"};
-
-
+  
+  
   treebb84(TTree * /*tree*/ =0) { }
   virtual ~treebb84() { }
-  virtual Int_t   Version() const { return 2; }
+  virtual Int_t   Version() const { return 2; }        // cosa è ???
   virtual void    Begin(TTree *tree);
-  virtual void    SlaveBegin(TTree *tree);
+  virtual void    SlaveBegin(TTree *tree);             // per il calcolo in parallelo ???
   virtual void    Init(TTree *tree);
   virtual Bool_t  Notify();
   virtual Bool_t  Process(Long64_t entry);
@@ -46,11 +46,11 @@ class treebb84 : public TSelector {
   virtual TList  *GetOutputList() const { return fOutput; }
   virtual void    SlaveTerminate();
   virtual void    Terminate();
-
+  
   TH1D* fHist;
-
+  
   ClassDef(treebb84,0);
-
+  
 };
 
 #endif
@@ -64,7 +64,7 @@ void treebb84::Init(TTree *tree)
   // code, but the routine can be extended by the user if needed.
   // Init() will be called many times when running on PROOF
   // (once per file to be processed).
-
+  
   fReader.SetTree(tree);
 }
 
@@ -75,7 +75,7 @@ Bool_t treebb84::Notify()
   // is started when using PROOF. It is normally not necessary to make changes
   // to the generated code, but the routine can be extended by the
   // user if needed. The return value is currently not used.
-
+  
   return kTRUE;
 }
 

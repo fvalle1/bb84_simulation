@@ -16,20 +16,20 @@ void Buddy::InterceptQbit(Qbit *qbit) {
 void Buddy::ReceiveQbit(Qbit *qbit){
     if(Qbit::DEBUG) {
         printf("\n\n**********\nReceiving qbit..\n");
-        std::cout << "received qbit: " << *qbit << std::endl;
+        std::cout << "received qbit: " << *qbit << std::endl;              // stampo lo stato del qbit ricevuto
     }
-    basis measuringBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);
-    qbit->MeasureState(measuringBase);
-    if(Qbit::DEBUG) std::cout << "measured qbit: " << *qbit << std::endl;
+    basis measuringBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);         // estraggo a caso una base
+    qbit->MeasureState(measuringBase);                                     // misuro lo stato del qbit, proiettandolo con la base scelta
+    if(Qbit::DEBUG) std::cout << "measured qbit: " << *qbit << std::endl;  // stampo lo stato del qbit trasformato 
 }
 
 
-void Buddy::PrepareQbit(Qbit *qbit) {
+void Buddy::PrepareQbit(Qbit *qbit) {                                      
     if(Qbit::DEBUG) {
         printf("\n\n**********\nPreparing qbit..\n");
         std::cout << "received qbit: " << *qbit << std::endl;
     }
-    basis preparingBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);
-    polarization preparingPol = (gRandom->Rndm()<0.5);
-    qbit->PrepareState(preparingBase, preparingPol);
+    basis preparingBase = (gRandom->Rndm()<0.5?ZeroOne:PlusMinus);          // estraggo la base da usare
+    polarization preparingPol = (gRandom->Rndm()<0.5);                      // estraggo lo stato 
+    qbit->PrepareState(preparingBase, preparingPol);                        // preparo lo stato
 }

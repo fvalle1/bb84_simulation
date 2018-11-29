@@ -17,16 +17,16 @@
 
 class Simulator {
 public:
-    static Simulator *Instance(bool useLogicQbits);
+  static Simulator *Instance(bool useLogicQbits);   // metodo Instance() per creare l'oggetto Simulator in istanza unica --> Simulator è un singleton
 
     Simulator* RunSimulation();
     Simulator* GeneratePlots();
     Simulator* ShowResults(TCanvas *cx);
 
 private:
-    Simulator(bool useLogicQbits);
+    Simulator(bool useLogicQbits);                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     ~Simulator();
-    Simulator(const Simulator& source); //impedisco a compilatore di creare copy constructor
+    Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
     Channel** fChannels;
     int fNqbits;
@@ -42,7 +42,7 @@ private:
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
     static const int fSimulations = 2000;
 
-    static Simulator* fgSimulator;
+    static Simulator* fgSimulator;                  // global pointer
 
     void SetStylesAndDraw(TH1D *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
 

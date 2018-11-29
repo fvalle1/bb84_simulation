@@ -13,10 +13,10 @@
 
 
 class Buddy{
-public:
-    static void PrepareQbit(Qbit *qbit);
-    static void ReceiveQbit(Qbit *qbit); //cambia basis del qbit
-    static void InterceptQbit(Qbit *qbit);
+ public:
+  static void PrepareQbit(Qbit *qbit);    // sono funzioni statiche --> non dipendono dallo stato di un oggetto della classe
+  static void ReceiveQbit(Qbit *qbit);    //cambia basis del qbit
+  static void InterceptQbit(Qbit *qbit);
 };
 
 
