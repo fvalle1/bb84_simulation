@@ -13,12 +13,12 @@
 
 using std::ostream;
 
-typedef enum basis{
-    PlusMinus,
-    ZeroOne
+typedef enum basis{              // definisco il tipo "basis", cheè un enumeration. Cioè qualcosa che può assumere solo i valori Plusminuse ZeroOne
+  PlusMinus,
+  ZeroOne
 } basis;
 
-typedef bool polarization;
+typedef bool polarization;       // definisco il tipo "polarization", che è un booleano. Sarà 0 o 1
 
 class Qbit {
 public:

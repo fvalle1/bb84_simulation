@@ -12,18 +12,18 @@
 #include <iostream>
 #endif
 
-#include <curl/curl.h>
+#include <curl/curl.h>                        // strumento per interagire con il web
 
 using std::string;
 
-class TelegramWatch : public StopWatch {
+class TelegramWatch : public StopWatch {      // classe che eredita da StopWatch
 public:
     TelegramWatch();
     TelegramWatch(const char* name);
     ~TelegramWatch();
 private:
-    void callIFTTT() const;
-    static const char* fURL;
+    void callIFTTT() const;                   // IFTTT = If This Then That. Servizio per mettere in comunicazione + dispositivi. Es imposto di chiamare il mio cellulare.
+    static const char* fURL;               
     const char* fName;
 };
 

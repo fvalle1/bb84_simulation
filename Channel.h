@@ -15,7 +15,7 @@ class Channel{
  public:
   Channel(bool isNoisy = false);
   ~Channel();
-  void PassQbit(Qbit* qbit);
+  void PassQbit(Qbit* qbit);                                  //trasmissione del qbit: prende il qbit, lo altera se il canale è rumoroso
   inline void SetNoisy(bool isNoisy){fIsNoisy = isNoisy;};
 };
 

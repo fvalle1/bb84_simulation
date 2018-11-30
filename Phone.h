@@ -7,8 +7,8 @@
 #include "Qbit.h"
 #endif
 
-struct fStructToSave{
-    int Ntot;
+struct fStructToSave{           //informazioni da tenere
+    int Ntot;                    
     int SameBasisIntercept;
     int SameBasisNoIntercept;
 };
@@ -20,12 +20,12 @@ public:
     Phone(const Phone& phone);
     virtual ~Phone();
 
-    void InitResults(fStructToSave &data);
-    void SetNewQbit(Qbit *qbitA);
-    bool MakeCallClassicalChannel(Qbit *qbit, fStructToSave &data);
+    void InitResults(fStructToSave &data);                            // per salvare le informazioni nella struttura fStructToSave                            
+    void SetNewQbit(Qbit *qbitA);                                     // per assegnare a fQbitA il valore del qbit di ALice, per poter fare il confronto
+    bool MakeCallClassicalChannel(Qbit *qbit, fStructToSave &data);   // fa il confronto tra i qbit di Alice e Bob, restituisce un booleano: vero se sono uguali, falso se sono diversi
 
 private:
-    Qbit* fQbitA;
+    Qbit* fQbitA;        // qbit di Alice
 
 };
 
