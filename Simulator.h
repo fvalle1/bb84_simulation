@@ -28,6 +28,11 @@ private:
     ~Simulator();
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
+
+    void PlotPdfPerLenght(TTree*, double*, double*);
+    void PlotNinterceptedVsN(TTree*);
+    void HistNintercepted(TTree*);
+
     Channel** fChannels;
     int fNqbits;
     bool fUseLogicQbits;

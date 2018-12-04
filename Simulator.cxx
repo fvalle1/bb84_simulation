@@ -203,7 +203,6 @@ Simulator* Simulator::GeneratePlots() {
 
 
 
-
 //        probVsNHist->Write();
 //        probVsNHist_teo->Write();
 //        NVsNHist->Write();
@@ -223,6 +222,12 @@ Simulator* Simulator::GeneratePlots() {
 //    delete Useful_distr;
 
     }
+
+    for(int i=0; i<fNqbits; i++){
+        delete PdfperLenghtCom[i];
+    }
+    delete[] PdfperLenghtCom;
+
     return this;
 }
 
@@ -296,6 +301,19 @@ void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *
             dynamic_cast<TGraph*>(hist)->SetMarkerColor(color);
         }
     }
+}
+
+void Simulator::PlotPdfPerLenght(TTree *, double *, double *) {
+
+}
+
+void Simulator::PlotNinterceptedVsN(TTree*){
+    
+}
+
+
+void Simulator::HistNintercepted(TTree*){
+
 }
 
 /*
