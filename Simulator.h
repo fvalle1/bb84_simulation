@@ -29,8 +29,8 @@ private:
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
 
-    void PlotPdfPerLenght(TTree*, double*, double*);
-    void PlotNinterceptedVsN(TTree*);
+    void PlotPdfPerLenght(TTree *);
+    void PlotNinterceptedVsN(TTree *);
     void HistNintercepted(TTree*);
 
     Channel** fChannels;
@@ -45,7 +45,7 @@ private:
     static constexpr const char* fNDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
-    static const int fSimulations = 2000;
+    static const int fSimulations = 200000;
 
     static Simulator* fgSimulator;                  // global pointer
 

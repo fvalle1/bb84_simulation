@@ -86,138 +86,164 @@ Simulator* Simulator::GeneratePlots() {
         return this;
     }
 
-    auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits + 0.5);
-    auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits + 0.5);
-
-
     auto tree = dynamic_cast<TTree *>(file.Get(fTreename));     // ??? cosa faccio qua?
     if (tree && !tree->IsZombie()) {
-        HistNintercepted(tree);
+        PlotPdfPerLenght(tree);
         PlotNinterceptedVsN(tree);
-
-        double fractionOfIntercepted = 0.;
-        double distrNormFactor = 1. / fSimulations / fNqbits;
-        int j = 0;
-
-        auto entries = tree->GetEntries();
-        for (int entry = 0; entry < entries; ++entry) {
-            printf("\r%u/%llu", entry + 1,
-                   entries);                 // '\r' mi permette di sovrascrivere la linea stampata ogni volta
-            tree->GetEvent(entry);
-
-            int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-            if (NSamebasis != 0)
-                fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-            else fractionOfIntercepted = 0.;
-
-            NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
-            NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
-
-            Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-
-            j = entry % fNqbits;
-            PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
-        }
-
-        auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits + 0.5);
-        auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits + 0.5);
-
-        auto NVsNHist = new TH1D(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits + 0.5);
-        auto NVsNHist_distr = new TH1D(fNDistrName, fNPlotName, 10, 0, 1);
-
-        auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
-        auto PdfperLenghtCom = new TH1D *[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
-        char title[50];
-        for (int i = 0; i < fNqbits; i++) {
-            sprintf(title, "PdfperLenghtCom_%d", i);
-            PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
-        }
-
-        auto tree = dynamic_cast<TTree *>(file.Get(fTreename));
-        if (tree && !tree->IsZombie()) {
-            TBranch *data = tree->GetBranch(fBranchName);
-            static fStructToSave currentData;
-            data->SetAddress(&currentData);
-
-            double fractionOfIntercepted = 0.;
-            double distrNormFactor = 1. / fSimulations / fNqbits;
-            int j = 0;
-
-            auto entries = tree->GetEntries();
-            for (int entry = 0; entry < entries; ++entry) {
-                printf("\r%u/%llu", entry + 1, entries);
-                tree->GetEvent(entry);
-
-                int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-                if (NSamebasis != 0)
-                    fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-                else fractionOfIntercepted = 0.;
-
-                NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
-                NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
-
-                Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-
-                j = entry % fNqbits;
-                PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
-
-            }
-
-            TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
-            double sigma_PdfperLenght[fNqbits];
-            double mean_PdfperLenght[fNqbits];
-            double p_value = 0;
-            for (int i = 0; i < fNqbits; i++) {
-                PdfperLenghtCom[i]->Fit("fit_gaus", "Q");
-                mean_PdfperLenght[i] = fit_gaus->GetParameter("Mean");
-                sigma_PdfperLenght[i] = fit_gaus->GetParameter("Sigma");
-                if (i == 10) {
-                    std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
-                         << fit_gaus->GetParameter("Sigma") << std::endl;
-                }
-                std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << mean_PdfperLenght[i] << std::endl;
-                //p_value = fit_gaus->GetProb();
-                //if(p_value < 0.05) cout <<" *** in communication with "<< i+1 << " Qbits, p_value is smaller than 0.05"<< endl;
-            }
-
-
-            for (int nqbit = 1; nqbit <= fNqbits; nqbit++) {
-                double teoValue = TMath::Power(0.25, nqbit);
-                probVsNHist_teo->Fill(nqbit, teoValue);
-
-                double simulatedFrac = NVsNHist->GetBinContent(nqbit);
-                probVsNHist->SetBinContent(nqbit, TMath::Power(simulatedFrac, nqbit));
-                if (Qbit::DEBUG) printf("\nn:%20.15f pow:%20.15f", simulatedFrac, TMath::Power(simulatedFrac, nqbit));
-            }
-
-
-
-//        probVsNHist->Write();
-//        probVsNHist_teo->Write();
-//        NVsNHist->Write();
-//        NVsNHist_distr->Write();
-//        Useful_distr->Write();
-            file.Write();
-            file.Close();
-
-        } else {
-            std::cerr << "Tree not found on file" << std::endl;
-        }
-
-//    delete probVsNHist;
-//    delete probVsNHist_teo;
-//    delete NVsNHist;
-//    delete NVsNHist_distr;
-//    delete Useful_distr;
-
+        HistNintercepted(tree);
     }
 
+    return this;
+}
+
+void Simulator::PlotPdfPerLenght(TTree *tree) {
+    printf("\nExtimating means and sigmas of NIntercepted distributions\n");
+    TBranch *data = tree->GetBranch(fBranchName);
+    static fStructToSave currentData;
+    data->SetAddress(&currentData);
+
+    auto NInteceptedVsNqbitHist = new TGraphErrors(fNqbits);
+    auto probVsNHist = new TGraphErrors(fNqbits);
+    auto probVsNHist_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fNqbits, 0);
+
+
+    // create histograms
+    auto PdfperLenghtCom = new TH1D *[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
+    char title[50];
+    for (int i = 0; i < fNqbits; i++) {
+        sprintf(title, "PdfperLenghtCom_%d", i);
+        PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
+    }
+
+    // Fill histograms
+    auto j=0;
+    double fractionOfIntercepted = 0.;
+    auto entries = tree->GetEntries();
+    for (int entry = 0; entry < entries; ++entry) {
+        printf("\r%u/%llu", entry + 1, entries);                 // '\r' mi permette di sovrascrivere la linea stampata ogni volta
+        tree->GetEvent(entry);
+
+        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+        if (NSamebasis != 0)  fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+        else fractionOfIntercepted = 0.;
+        j = entry % fNqbits;
+        PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
+    }
+
+    // create fit, then create arrays of means and sigmas
+    TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
+
+    double p_value = 0;
+    for (int i = 0; i < fNqbits; i++) {
+        if(Qbit::DEBUG) PdfperLenghtCom[i]->Fit("fit_gaus", "Q0");
+        else PdfperLenghtCom[i]->Fit("fit_gaus", "Q");
+
+        double currentMean = 0.;
+        double currentSigma = 0.;
+
+        if(fit_gaus->GetParameter("Mean")>0){
+            currentMean = fit_gaus->GetParameter("Mean");
+            currentSigma = fit_gaus->GetParameter("Sigma");
+        } else{
+            currentMean = PdfperLenghtCom[i]->GetMean();
+            currentSigma = fit_gaus->GetParameter("Sigma");
+        }
+        // if (i == 10) {
+        //  std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
+        //		<< fit_gaus->GetParameter("Sigma") << std::endl;
+        //}
+//        std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
+        //p_value = fit_gaus->GetProb();
+        //if(p_value < 0.05) cout <<" *** in communication with "<< i+1 << " Qbits, p_value is smaller than 0.05"<< endl;
+
+        NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
+        NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
+
+
+        int N = i+1;
+        double p = TMath::Power(currentMean, N); //mean ^N
+        probVsNHist->SetPoint(i, N, p);
+        double error = N*p/currentMean*currentSigma; //N * x^(N-1) * sigmaX (aka N * x^N / x * sigmaX)
+        probVsNHist->SetPointError(i, 0, error);
+    }
+
+    // delete histograms
     for(int i=0; i<fNqbits; i++){
         delete PdfperLenghtCom[i];
     }
     delete[] PdfperLenghtCom;
+    delete fit_gaus;
 
-    return this;
+    NInteceptedVsNqbitHist->SetTitle(fNPlotName);
+    NInteceptedVsNqbitHist->Write(fNPlotName, TObject::kSingleKey | TObject::kOverwrite);
+    probVsNHist->SetTitle(fProbabilityTeoPlotName);
+    probVsNHist->Write(fProbabilityPlotName, TObject::kSingleKey | TObject::kOverwrite);
+    probVsNHist_teo->SetTitle(fProbabilityTeoPlotName);
+    probVsNHist_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
+    delete NInteceptedVsNqbitHist;
+    delete probVsNHist;
+    delete probVsNHist_teo;
+}
+
+
+void Simulator::PlotNinterceptedVsN(TTree *tree) {
+    printf("\nPlotting plot of N intercepted vs N\n");
+    TBranch *data = tree->GetBranch(fBranchName);
+    static fStructToSave currentData;
+    data->SetAddress(&currentData);
+
+    auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
+
+    double fractionOfIntercepted = 0.;
+    double distrNormFactor = 1. / fSimulations / fNqbits;
+//
+//    auto entries = tree->GetEntries();
+//    for (int entry = 0; entry < entries; ++entry) {
+//        printf("\r%u/%llu", entry + 1, entries);
+//        tree->GetEvent(entry);
+//
+//        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+//        if (NSamebasis != 0) fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+//        else fractionOfIntercepted = 0.;
+//
+//        NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
+//
+//        Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
+//    }
+
+    Useful_distr->Write();
+
+    Useful_distr->SetDirectory(nullptr);
+
+    delete Useful_distr;
+}
+
+void Simulator::HistNintercepted(TTree *tree) {
+    printf("\nPlotting hist of N intercepted\n");
+    TBranch *data = tree->GetBranch(fBranchName);
+    static fStructToSave currentData;
+    data->SetAddress(&currentData);
+
+    double fractionOfIntercepted = 0.;
+    double distrNormFactor = 1. / fSimulations / fNqbits;
+
+    auto NVsNHist_distr = new TH1D(fNDistrName, fNDistrName, 10, 0, 1);
+    auto entries = tree->GetEntries();
+    for (int entry = 0; entry < entries; ++entry) {
+        printf("\r%u/%llu", entry + 1, entries);
+        tree->GetEvent(entry);
+
+        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+        if (NSamebasis != 0)
+            fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+        else fractionOfIntercepted = 0.;
+
+        NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+    }
+
+    NVsNHist_distr->Write();
+    NVsNHist_distr->SetDirectory(nullptr);
+    delete NVsNHist_distr;
 }
 
 Simulator* Simulator::ShowResults(TCanvas *cx) {
@@ -230,12 +256,10 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
             return this;
         }
 
-        auto probVsNHist = dynamic_cast<TH1D *>(file.Get(fProbabilityPlotName));
-        if (probVsNHist) probVsNHist->SetDirectory(nullptr);
-        auto probVsNHist_teo = dynamic_cast<TH1D *>(file.Get(fProbabilityTeoPlotName));
-        if (probVsNHist_teo) probVsNHist_teo->SetDirectory(nullptr);
-        auto NVsNHist = dynamic_cast<TGraphErrors *>(file.Get(fNPlotName));
-        auto NVsNHist_distr = dynamic_cast<TH1D *>(file.Get(fNDistrName));
+        auto probVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fProbabilityPlotName));
+        auto probVsNHist_teo = dynamic_cast<TF1*>(file.Get(fProbabilityTeoPlotName));
+        auto NVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fNPlotName));
+        auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(fNDistrName));
         if (NVsNHist_distr) NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D *>(file.Get(fUsefulPlotName));
         if (UsefulHist) UsefulHist->SetDirectory(nullptr);
@@ -251,17 +275,17 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         cx->SetName("bb84");
         cx->Divide(3, 2);
         cx->cd(1);
-        SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 6);
-        SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 5);
+        SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
+        SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
         cx->cd(2);
         SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         cx->cd(4)->SetLogy();
-        SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 6);
-        SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 5);
+        SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
+        SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
         cx->cd(5);
-        SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 5);
+        SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         cx->cd(6);
-        SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow - 3, 5);
+        SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow - 3, 2);
 
     } else {
         std::cerr << "TCanvas is nullptr" << std::endl;
@@ -275,78 +299,30 @@ void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *
                                  Width_t linewidth) const {
     if (hist) {
         if(hist->InheritsFrom("TH1")){
+            dynamic_cast<TH1*>(hist)->SetLineWidth(linewidth);
+            dynamic_cast<TH1*>(hist)->SetLineColor(color);
             dynamic_cast<TH1*>(hist)->Draw("hist same c");
             dynamic_cast<TH1*>(hist)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TH1*>(hist)->GetYaxis()->SetTitle(ylabel);
-            dynamic_cast<TH1*>(hist)->SetLineWidth(linewidth);
-            dynamic_cast<TH1*>(hist)->SetLineColor(color);
+        }
+        if(hist->InheritsFrom("TF1")){
+            dynamic_cast<TF1*>(hist)->SetLineWidth(linewidth);
+            dynamic_cast<TF1*>(hist)->SetLineColor(color);
+            dynamic_cast<TF1*>(hist)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TF1*>(hist)->GetYaxis()->SetTitle(ylabel);
+            dynamic_cast<TF1*>(hist)->Draw("same c");
         }
         if(hist->InheritsFrom("TGraph")){
-            dynamic_cast<TGraph*>(hist)->Draw("APE same");
-            dynamic_cast<TGraph*>(hist)->GetXaxis()->SetTitle(xLabel);
-            dynamic_cast<TGraph*>(hist)->GetYaxis()->SetTitle(ylabel);
             dynamic_cast<TGraph*>(hist)->SetLineWidth(linewidth);
-            dynamic_cast<TGraph*>(hist)->SetMarkerSize(0.8);
+            dynamic_cast<TGraph*>(hist)->SetMarkerSize(0.2);
             dynamic_cast<TGraph*>(hist)->SetMarkerStyle(20);
             dynamic_cast<TGraph*>(hist)->SetLineColor(color);
             dynamic_cast<TGraph*>(hist)->SetMarkerColor(color);
+            dynamic_cast<TGraph*>(hist)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TGraph*>(hist)->GetYaxis()->SetTitle(ylabel);
+            dynamic_cast<TGraph*>(hist)->Draw("APE same c");
         }
     }
 }
 
-void Simulator::PlotPdfPerLenght(TTree *, double *, double *) {
-  // create histograms
-  auto PdfperLenghtCom = new TH1D *[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
-  char title[50];
-  for (int i = 0; i < fNqbits; i++) {
-    sprintf(title, "PdfperLenghtCom_%d", i);
-    PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
-  }
 
-  // Fill histograms
-  auto j=0;
-  auto entries = tree->GetEntries();
-  for (int entry = 0; entry < entries; ++entry) {
-    printf("\r%u/%llu", entry + 1,
-	   entries);                 // '\r' mi permette di sovrascrivere la linea stampata ogni volta
-    tree->GetEvent(entry);
-    
-    int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-    if (NSamebasis != 0)
-      fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-    else fractionOfIntercepted = 0.;
-    j = entry % fNqbits;
-    PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
-  }
-
-  // create fit, then create arrays of means and sigmas
-  TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
-  double sigma_PdfperLenght[fNqbits];
-  double mean_PdfperLenght[fNqbits];
-  double p_value = 0;
-  for (int i = 0; i < fNqbits; i++) {
-    if(DEBUG) PdfperLenghtCom[i]->Fit("fit_gaus", "Q0");
-    else PdfperLenghtCom[i]->Fit("fit_gaus", "Q");
-    if(GetParameter("Mean")>0){
-      mean_PdfperLenght[i] = fit_gaus->GetParameter("Mean");
-      sigma_PdfperLenght[i] = fit_gaus->GetParameter("Sigma");
-    } else{
-      mean_PdfperLenght[i] = PdfperLenghtCom[i]->GetMean();
-      sigma_PdfperLenght[i] = fit_gaus->GetParameter("Sigma");
-    }
-    // if (i == 10) {
-    //  std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
-    //		<< fit_gaus->GetParameter("Sigma") << std::endl;
-    //}
-    //std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << mean_PdfperLenght[i] << std::endl;
-    //p_value = fit_gaus->GetProb();
-    //if(p_value < 0.05) cout <<" *** in communication with "<< i+1 << " Qbits, p_value is smaller than 0.05"<< endl;
-  }
-
-  // delete histograms
-  for(int i=0; i<fNqbits; i++){
-        delete PdfperLenghtCom[i];
-    }
-    delete[] PdfperLenghtCom;
-  
-}

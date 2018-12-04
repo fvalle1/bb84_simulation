@@ -65,20 +65,23 @@ void Qbit::PrepareTheta() {
         if (fState) {
             //preparing state |0>
             angleToSet = 0.;
-        } else {
-            if (fState) {
-//preparing state |+>
-                angleToSet = TMath::PiOver4();
-            } else {
-//preparing state |->
-                angleToSet = -TMath::PiOver4();
-            }
+        }else {
+            //preparing state |1>
+            angleToSet = TMath::PiOver2();
         }
-        //note: logic qbits have all 3 physical qbits identical after preparation
-        for (int qbit = 0; qbit < fPhysicsQbits; qbit++) { fTheta[qbit] = angleToSet; }
+    }else{
+        if (fState) {
+            //preparing state |->
+            angleToSet = -TMath::PiOver4();
+        }else {
+            //preparing state |+>
+            angleToSet = TMath::PiOver4();
+        }
     }
-
+    //note: logic qbits have all 3 physical qbits identical after preparation
+    for (int qbit = 0; qbit < fPhysicsQbits; qbit++) { fTheta[qbit] = angleToSet; }
 }
+
 
 void Qbit::MeasureState(basis b) {
     if (Qbit::DEBUG) printf("\nMeasuring qbit\n");
@@ -115,8 +118,7 @@ polarization Qbit::MeasurePhisicalqbit(int q) {
     //Return the polarization of the object
     //if basis is ZeroOne state is cos() |0> + sin() |1>
     //it is zero (aka down or false) with probability cos*cos
-    fState = gRandom->Rndm() > cosTheta * cosTheta;
-    return fState;
+    return gRandom->Rndm() > cosTheta * cosTheta;
 }
 
 bool Qbit::operator==(const Qbit &qitCompared) const {
