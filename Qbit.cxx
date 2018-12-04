@@ -26,14 +26,7 @@ Qbit::Qbit(const Qbit &qbit) : fPhysicsQbits(qbit.fPhysicsQbits),
 {
     if(Qbit::DEBUG) printf("\nCopying qbit..\n");
     fTheta=new double[qbit.fPhysicsQbits];
-    for(int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) {
-        if (qbit.fTheta) { //copy values if defined             // se fTheta è definito ed ha un valore diverso da 0, allora la condizione è vera e copio il valore. Altrimenti setto ftheta a zero.
-            fTheta[iqbit] = qbit.fTheta[iqbit];
-        }else{
-            fTheta[iqbit] = 0;
-        }
-    }
-
+    PrepareTheta();
 }
 
 Qbit &Qbit::operator=(const Qbit &source) {
@@ -63,19 +56,19 @@ void Qbit::PrepareTheta() {
     double angleToSet = 0.;
     if (fBase == ZeroOne) {
         if (fState) {
-            //preparing state |0>
-            angleToSet = 0.;
-        }else {
             //preparing state |1>
             angleToSet = TMath::PiOver2();
+        }else {
+            //preparing state |0>
+            angleToSet = 0.;
         }
     }else{
         if (fState) {
-            //preparing state |->
-            angleToSet = -TMath::PiOver4();
-        }else {
             //preparing state |+>
             angleToSet = TMath::PiOver4();
+        }else {
+            //preparing state |->
+            angleToSet = -TMath::PiOver4();
         }
     }
     //note: logic qbits have all 3 physical qbits identical after preparation

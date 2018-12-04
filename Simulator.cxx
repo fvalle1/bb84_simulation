@@ -2,9 +2,9 @@
 // Created by Filippo Valle on 15/11/2018.
 //
 
-#include <TGraphErrors.h>
+
 #include "Simulator.h"
-#include <stdio.h>
+
 
 Simulator* Simulator::fgSimulator = nullptr;                    // global pointer inizializzato a NULL
 
@@ -18,8 +18,8 @@ Simulator::Simulator(bool useLogicQbits) :                      // definisco il 
     fChannels[0]->SetNoisy(false);
     fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(False)?
 
-    gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
-    gRandom->SetSeed(42);                                         // The answer to life the universe and everything
+//    gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
+    //gRandom->SetSeed(42);                                         // The answer to life the universe and everything
 }
 
 Simulator::~Simulator() {
@@ -59,7 +59,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
-                Buddy::InterceptQbit(qbit);
+//                Buddy::InterceptQbit(qbit);
                 fChannels[1]->PassQbit(qbit);
                 Buddy::ReceiveQbit(qbit);
                 phone->MakeCallClassicalChannel(qbit, currentData);
@@ -97,7 +97,7 @@ Simulator* Simulator::GeneratePlots() {
 }
 
 void Simulator::PlotPdfPerLenght(TTree *tree) {
-    printf("\nExtimating means and sigmas of NIntercepted distributions\n");
+    printf("\nExtimating means and sigmas of N intercepted distributions\n");
     TBranch *data = tree->GetBranch(fBranchName);
     static fStructToSave currentData;
     data->SetAddress(&currentData);
@@ -112,7 +112,7 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     char title[50];
     for (int i = 0; i < fNqbits; i++) {
         sprintf(title, "PdfperLenghtCom_%d", i);
-        PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
+        PdfperLenghtCom[i] = new TH1D(title, title, 11, -0.05, 1.05);
     }
 
     // Fill histograms
@@ -141,20 +141,21 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
         double currentMean = 0.;
         double currentSigma = 0.;
 
-        if(fit_gaus->GetParameter("Mean")>0){
+        if(TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<2){
             currentMean = fit_gaus->GetParameter("Mean");
             currentSigma = fit_gaus->GetParameter("Sigma");
         } else{
             currentMean = PdfperLenghtCom[i]->GetMean();
-            currentSigma = fit_gaus->GetParameter("Sigma");
+            currentSigma = PdfperLenghtCom[i]->GetStdDev();
         }
         // if (i == 10) {
-        //  std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
-        //		<< fit_gaus->GetParameter("Sigma") << std::endl;
+        std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
+                  << fit_gaus->GetParameter("Sigma") << std::endl;
         //}
-//        std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
-        //p_value = fit_gaus->GetProb();
-        //if(p_value < 0.05) cout <<" *** in communication with "<< i+1 << " Qbits, p_value is smaller than 0.05"<< endl;
+        std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
+        std::cout<<"chi: "<<TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<<std::endl;
+        //        double p_value = fit_gaus->GetProb();
+//        if(i<=5||i>=95) std::cout <<fit_gaus->GetProb()<<std::endl;
 
         NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
         NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
@@ -169,9 +170,10 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 
     // delete histograms
     for(int i=0; i<fNqbits; i++){
-        delete PdfperLenghtCom[i];
+        //delete PdfperLenghtCom[i];
+        PdfperLenghtCom[i]->Write();
     }
-    delete[] PdfperLenghtCom;
+//    delete[] PdfperLenghtCom;
     delete fit_gaus;
 
     NInteceptedVsNqbitHist->SetTitle(fNPlotName);
@@ -277,11 +279,20 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         cx->cd(1);
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
+        probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
+
         cx->cd(2);
         SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
+        TLine line;
+        line.SetLineWidth(3);
+        line.SetLineColor(kRedBlue);
+        line.DrawLine(0,0.25,fNqbits,0.25);
+
         cx->cd(4)->SetLogy();
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
+        probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
+
         cx->cd(5);
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         cx->cd(6);

@@ -14,8 +14,8 @@
 using std::ostream;
 
 typedef enum basis{              // definisco il tipo "basis", cheè un enumeration. Cioè qualcosa che può assumere solo i valori Plusminuse ZeroOne
-  PlusMinus,
-  ZeroOne
+    ZeroOne,
+    PlusMinus
 } basis;
 
 typedef bool polarization;       // definisco il tipo "polarization", che è un booleano. Sarà 0 o 1

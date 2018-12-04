@@ -13,6 +13,9 @@
 #include <TCanvas.h>
 #include <TStyle.h>
 #include <TH1D.h>
+#include <TGraphErrors.h>
+#include <stdio.h>
+#include <TLine.h>
 #endif
 
 class Simulator {
@@ -45,7 +48,7 @@ private:
     static constexpr const char* fNDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
-    static const int fSimulations = 200000;
+    static const int fSimulations = 2000;
 
     static Simulator* fgSimulator;                  // global pointer
 
