@@ -5,18 +5,18 @@
 #include "Qbit.h"
 
 Qbit::Qbit(bool islogic) :    fIsLogic(islogic) {
-  if(Qbit::DEBUG) printf("\nCreating qbit..\n");
-  
-  if(fIsLogic) fPhysicsQbits = 3;
-  else fPhysicsQbits = 1;
-  
-  fTheta = new double[fPhysicsQbits];
-  for(int qbit = 0; qbit < fPhysicsQbits; qbit++){
-    fTheta[qbit] = 0.;
-  }
-  
-  fBase = ZeroOne; 
-  fState = false;            // il Qbit di default è costruito con polarizzazione orizzontale: base=ZeroOne, polarizzazione=0
+    if(Qbit::DEBUG) printf("\nCreating qbit..\n");
+
+    if(fIsLogic) fPhysicsQbits = 3;
+    else fPhysicsQbits = 1;
+
+    fTheta = new double[fPhysicsQbits];
+    for(int qbit = 0; qbit < fPhysicsQbits; qbit++){
+        fTheta[qbit] = 0.;
+    }
+
+    fBase = ZeroOne;
+    fState = false;            // il Qbit di default è costruito con polarizzazione orizzontale: base=ZeroOne, polarizzazione=0
 }
 
 Qbit::Qbit(const Qbit &qbit) : fPhysicsQbits(qbit.fPhysicsQbits),
@@ -24,16 +24,16 @@ Qbit::Qbit(const Qbit &qbit) : fPhysicsQbits(qbit.fPhysicsQbits),
                                fState(qbit.fState),
                                fIsLogic(qbit.fIsLogic)
 {
-  if(Qbit::DEBUG) printf("\nCopying qbit..\n");
-  fTheta=new double[qbit.fPhysicsQbits];
-  for(int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) {
-    if (qbit.fTheta) { //copy values if defined             // se fTheta è definito ed ha un valore diverso da 0, allora la condizione è vera e copio il valore. Altrimenti setto ftheta a zero.
-      fTheta[iqbit] = qbit.fTheta[iqbit];
-    }else{
-      fTheta[iqbit] = 0;
+    if(Qbit::DEBUG) printf("\nCopying qbit..\n");
+    fTheta=new double[qbit.fPhysicsQbits];
+    for(int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) {
+        if (qbit.fTheta) { //copy values if defined             // se fTheta è definito ed ha un valore diverso da 0, allora la condizione è vera e copio il valore. Altrimenti setto ftheta a zero.
+            fTheta[iqbit] = qbit.fTheta[iqbit];
+        }else{
+            fTheta[iqbit] = 0;
+        }
     }
-  }
-  
+
 }
 
 Qbit &Qbit::operator=(const Qbit &source) {
@@ -46,36 +46,38 @@ Qbit &Qbit::operator=(const Qbit &source) {
 
 
 Qbit::~Qbit() {
-  if(Qbit::DEBUG) printf("\nDestroying qbit..\n");
-  delete[] fTheta;
+    if(Qbit::DEBUG) printf("\nDestroying qbit..\n");
+    delete[] fTheta;
 }
 
 void Qbit::PrepareState(basis b, polarization pol){
-  if(Qbit::DEBUG) printf("\nPreparing qbit..\n");
-  fBase = b;
-  fState = pol;
-  
-  PrepareTheta();
+    if(Qbit::DEBUG) printf("\nPreparing qbit..\n");
+    fBase = b;
+    fState = pol;
+
+    PrepareTheta();
 }
 
 void Qbit::PrepareTheta() {
-  if (Qbit::DEBUG) printf("\nPreparing qbit\n");
-  double angleToSet = 0.;
-  if(fBase == ZeroOne){
-    if(fState){
-      //preparing state |0>
-      angleToSet = 0.;
-    }else{
-        if(fState){
+    if (Qbit::DEBUG) printf("\nPreparing qbit\n");
+    double angleToSet = 0.;
+    if (fBase == ZeroOne) {
+        if (fState) {
+            //preparing state |0>
+            angleToSet = 0.;
+        } else {
+            if (fState) {
 //preparing state |+>
-            angleToSet = TMath::PiOver4();
-        }else{
+                angleToSet = TMath::PiOver4();
+            } else {
 //preparing state |->
-            angleToSet = - TMath::PiOver4();
+                angleToSet = -TMath::PiOver4();
+            }
         }
+        //note: logic qbits have all 3 physical qbits identical after preparation
+        for (int qbit = 0; qbit < fPhysicsQbits; qbit++) { fTheta[qbit] = angleToSet; }
     }
-    //note: logic qbits have all 3 physical qbits identical after preparation
-    for(int qbit = 0; qbit < fPhysicsQbits; qbit++){fTheta[qbit] = angleToSet;}
+
 }
 
 void Qbit::MeasureState(basis b) {
@@ -104,41 +106,42 @@ void Qbit::MeasureState(basis b) {
             }
         }
     }
-  }
-  PrepareTheta();
+
+    PrepareTheta();
 }
 
-void Qbit::MeasurePhisicalqbit(int q) {
-  double cosTheta = TMath::Cos(fTheta[q]);
-  //Return the polarization of the object
-  //if basis is ZeroOne state is cos() |0> + sin() |1>
-  //it is zero (aka down or false) with probability cos*cos
-  fState = gRandom->Rndm() > cosTheta * cosTheta;
+polarization Qbit::MeasurePhisicalqbit(int q) {
+    double cosTheta = TMath::Cos(fTheta[q]);
+    //Return the polarization of the object
+    //if basis is ZeroOne state is cos() |0> + sin() |1>
+    //it is zero (aka down or false) with probability cos*cos
+    fState = gRandom->Rndm() > cosTheta * cosTheta;
+    return fState;
 }
 
 bool Qbit::operator==(const Qbit &qitCompared) const {
-  bool toReturn = (fBase == qitCompared.fBase);          // confronto due qbit: se hanno la stessa base --> guardo anche se hanno l
-  if(toReturn){
-    if(fState) return qitCompared.fState;                // ??? perché qua come condizione uso fState? non dovrei fare (fState == qitCompared.fState)?
-    else return !qitCompared.fState;
-  }else{
-    return false;
-  }
+    bool toReturn = (fBase == qitCompared.fBase);          // confronto due qbit: se hanno la stessa base --> guardo anche se hanno l
+    if(toReturn){
+        if(fState) return qitCompared.fState;                // ??? perché qua come condizione uso fState? non dovrei fare (fState == qitCompared.fState)?
+        else return !qitCompared.fState;
+    }else{
+        return false;
+    }
 }
 
 bool Qbit::operator!=(const Qbit &qbit) const {
-  return !(qbit == *this);
+    return !(qbit == *this);
 }
 
 ostream& operator<<(ostream& os, const Qbit q){
-  os << (q.fIsLogic?"logic":"physic") << " qbit"<< ", state: " <<q.fState << ", basis: "<<q.fBase                    // (q.fIsLogic?"logic":"physic") --> se fIsLogic = 1, è logico, altrimenti è fisico
-     <<std::endl;
-  for(int qbit = 0; qbit < q.fPhysicsQbits; qbit++) os <<"\ntheta "<< q.fTheta[qbit]<<std::endl<<std::endl<<std::endl;
-  return os;
+    os << (q.fIsLogic?"logic":"physic") << " qbit"<< ", state: " <<q.fState << ", basis: "<<q.fBase                    // (q.fIsLogic?"logic":"physic") --> se fIsLogic = 1, è logico, altrimenti è fisico
+       <<std::endl;
+    for(int qbit = 0; qbit < q.fPhysicsQbits; qbit++) os <<"\ntheta "<< q.fTheta[qbit]<<std::endl<<std::endl<<std::endl;
+    return os;
 }
 
 void Qbit::AddNoise() {
-  for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit]+=gRandom->Gaus(0, 0.2);                          // qua magari la sigma andrà passata come variabile
+    for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit]+=gRandom->Gaus(0, 0.2);                          // qua magari la sigma andrà passata come variabile
 }
 
 

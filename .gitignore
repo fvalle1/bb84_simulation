@@ -42,3 +42,5 @@ build
 *.pdf
 *.png
 *.gif
+
+*.cxx_tmp_7349
