@@ -95,83 +95,132 @@ Simulator* Simulator::GeneratePlots() {
         HistNintercepted(tree);
         PlotNinterceptedVsN(tree);
 
+        double fractionOfIntercepted = 0.;
+        double distrNormFactor = 1. / fSimulations / fNqbits;
+        int j = 0;
+
+        auto entries = tree->GetEntries();
+        for (int entry = 0; entry < entries; ++entry) {
+            printf("\r%u/%llu", entry + 1,
+                   entries);                 // '\r' mi permette di sovrascrivere la linea stampata ogni volta
+            tree->GetEvent(entry);
+
+            int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+            if (NSamebasis != 0)
+                fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+            else fractionOfIntercepted = 0.;
+
+            NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
+            NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+
+            Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
+
+            j = entry % fNqbits;
+            PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
+        }
+
+        auto probVsNHist = new TH1D(fProbabilityPlotName, fProbabilityPlotName, fNqbits, 0.5, fNqbits + 0.5);
+        auto probVsNHist_teo = new TH1D(fProbabilityTeoPlotName, fProbabilityTeoPlotName, fNqbits, 0.5, fNqbits + 0.5);
+
+        auto NVsNHist = new TH1D(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits + 0.5);
+        auto NVsNHist_distr = new TH1D(fNDistrName, fNPlotName, 10, 0, 1);
+
+        auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
+        auto PdfperLenghtCom = new TH1D *[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
+        char title[50];
+        for (int i = 0; i < fNqbits; i++) {
+            sprintf(title, "PdfperLenghtCom_%d", i);
+            PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
+        }
+
+        auto tree = dynamic_cast<TTree *>(file.Get(fTreename));
+        if (tree && !tree->IsZombie()) {
+            TBranch *data = tree->GetBranch(fBranchName);
+            static fStructToSave currentData;
+            data->SetAddress(&currentData);
+
+            double fractionOfIntercepted = 0.;
+            double distrNormFactor = 1. / fSimulations / fNqbits;
+            int j = 0;
+
+            auto entries = tree->GetEntries();
+            for (int entry = 0; entry < entries; ++entry) {
+                printf("\r%u/%llu", entry + 1, entries);
+                tree->GetEvent(entry);
+
+                int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+                if (NSamebasis != 0)
+                    fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+                else fractionOfIntercepted = 0.;
+
+                NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
+                NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+
+                Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
+
+                j = entry % fNqbits;
+                PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
+
+            }
+
+            TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
+            double sigma_PdfperLenght[fNqbits];
+            double mean_PdfperLenght[fNqbits];
+            double p_value = 0;
+            for (int i = 0; i < fNqbits; i++) {
+                PdfperLenghtCom[i]->Fit("fit_gaus", "Q");
+                mean_PdfperLenght[i] = fit_gaus->GetParameter("Mean");
+                sigma_PdfperLenght[i] = fit_gaus->GetParameter("Sigma");
+                if (i == 10) {
+                    std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
+                         << fit_gaus->GetParameter("Sigma") << std::endl;
+                }
+                std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << mean_PdfperLenght[i] << std::endl;
+                //p_value = fit_gaus->GetProb();
+                //if(p_value < 0.05) cout <<" *** in communication with "<< i+1 << " Qbits, p_value is smaller than 0.05"<< endl;
+            }
+
+
+            for (int nqbit = 1; nqbit <= fNqbits; nqbit++) {
+                double teoValue = TMath::Power(0.25, nqbit);
+                probVsNHist_teo->Fill(nqbit, teoValue);
+
+                double simulatedFrac = NVsNHist->GetBinContent(nqbit);
+                probVsNHist->SetBinContent(nqbit, TMath::Power(simulatedFrac, nqbit));
+                if (Qbit::DEBUG) printf("\nn:%20.15f pow:%20.15f", simulatedFrac, TMath::Power(simulatedFrac, nqbit));
+            }
+
+
+
+//        probVsNHist->Write();
+//        probVsNHist_teo->Write();
+//        NVsNHist->Write();
+//        NVsNHist_distr->Write();
+//        Useful_distr->Write();
+            file.Write();
+            file.Close();
+
+        } else {
+            std::cerr << "Tree not found on file" << std::endl;
+        }
+
+//    delete probVsNHist;
+//    delete probVsNHist_teo;
+//    delete NVsNHist;
+//    delete NVsNHist_distr;
+//    delete Useful_distr;
+
     }
+
+    for(int i=0; i<fNqbits; i++){
+        delete PdfperLenghtCom[i];
+    }
+    delete[] PdfperLenghtCom;
 
     return this;
 }
 
-void Simulator::PlotPdfPerLenght(TTree *, double *, double *) {
-
-}
-
-void Simulator::PlotNinterceptedVsN(TTree* tree) {
-    printf("\nPlotting plot of N intercepted vs N\n");
-    TBranch *data = tree->GetBranch(fBranchName);
-    static fStructToSave currentData;
-    data->SetAddress(&currentData);
-
-    auto NVsNHist = new TH1D(fNPlotName, fNPlotName, fNqbits, 0.5, fNqbits + 0.5);
-    auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
-
-    double fractionOfIntercepted = 0.;
-    double distrNormFactor = 1. / fSimulations / fNqbits;
-
-    auto entries = tree->GetEntries();
-    for (int entry = 0; entry < entries; ++entry) {
-        printf("\r%u/%llu", entry + 1, entries);
-        tree->GetEvent(entry);
-
-        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-        if (NSamebasis != 0) fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-        else fractionOfIntercepted = 0.;
-
-        NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
-
-        Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-    }
-
-    Useful_distr->Write();
-    NVsNHist->Write();
-
-    Useful_distr->SetDirectory(nullptr);
-    NVsNHist->SetDirectory(nullptr);
-
-    delete Useful_distr;
-    delete NVsNHist;
-}
-
-void Simulator::HistNintercepted(TTree *tree) {
-    printf("\nPlotting hist of N intercepted\n");
-    TBranch *data = tree->GetBranch(fBranchName);
-    static fStructToSave currentData;
-    data->SetAddress(&currentData);
-
-    double fractionOfIntercepted = 0.;
-    double distrNormFactor = 1. / fSimulations / fNqbits;
-
-    auto NVsNHist_distr = new TH1D(fNDistrName, fNDistrName, 10, 0, 1);
-    auto entries = tree->GetEntries();
-    for (int entry = 0; entry < entries; ++entry) {
-        printf("\r%u/%llu", entry + 1, entries);
-        tree->GetEvent(entry);
-
-        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-        if (NSamebasis != 0)
-            fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-        else fractionOfIntercepted = 0.;
-
-        NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
-    }
-
-    NVsNHist_distr->Write();
-    NVsNHist_distr->SetDirectory(nullptr);
-    delete NVsNHist_distr;
-}
-
-
-
-
-Simulator *Simulator::ShowResults(TCanvas *cx) {
+Simulator* Simulator::ShowResults(TCanvas *cx) {
     printf("\nShowing results..\n");
     if (cx) {
         TFile file(fFilename, "READ");
@@ -243,4 +292,61 @@ void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *
             dynamic_cast<TGraph*>(hist)->SetMarkerColor(color);
         }
     }
+}
+
+void Simulator::PlotPdfPerLenght(TTree *, double *, double *) {
+  // create histograms
+  auto PdfperLenghtCom = new TH1D *[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
+  char title[50];
+  for (int i = 0; i < fNqbits; i++) {
+    sprintf(title, "PdfperLenghtCom_%d", i);
+    PdfperLenghtCom[i] = new TH1D(title, title, 10, 0, 1);
+  }
+
+  // Fill histograms
+  auto j=0;
+  auto entries = tree->GetEntries();
+  for (int entry = 0; entry < entries; ++entry) {
+    printf("\r%u/%llu", entry + 1,
+	   entries);                 // '\r' mi permette di sovrascrivere la linea stampata ogni volta
+    tree->GetEvent(entry);
+    
+    int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+    if (NSamebasis != 0)
+      fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+    else fractionOfIntercepted = 0.;
+    j = entry % fNqbits;
+    PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
+  }
+
+  // create fit, then create arrays of means and sigmas
+  TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
+  double sigma_PdfperLenght[fNqbits];
+  double mean_PdfperLenght[fNqbits];
+  double p_value = 0;
+  for (int i = 0; i < fNqbits; i++) {
+    if(DEBUG) PdfperLenghtCom[i]->Fit("fit_gaus", "Q0");
+    else PdfperLenghtCom[i]->Fit("fit_gaus", "Q");
+    if(GetParameter("Mean")>0){
+      mean_PdfperLenght[i] = fit_gaus->GetParameter("Mean");
+      sigma_PdfperLenght[i] = fit_gaus->GetParameter("Sigma");
+    } else{
+      mean_PdfperLenght[i] = PdfperLenghtCom[i]->GetMean();
+      sigma_PdfperLenght[i] = fit_gaus->GetParameter("Sigma");
+    }
+    // if (i == 10) {
+    //  std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
+    //		<< fit_gaus->GetParameter("Sigma") << std::endl;
+    //}
+    //std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << mean_PdfperLenght[i] << std::endl;
+    //p_value = fit_gaus->GetProb();
+    //if(p_value < 0.05) cout <<" *** in communication with "<< i+1 << " Qbits, p_value is smaller than 0.05"<< endl;
+  }
+
+  // delete histograms
+  for(int i=0; i<fNqbits; i++){
+        delete PdfperLenghtCom[i];
+    }
+    delete[] PdfperLenghtCom;
+  
 }
