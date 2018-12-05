@@ -8,9 +8,10 @@
 
 Simulator* Simulator::fgSimulator = nullptr;                    // global pointer inizializzato a NULL
 
-Simulator::Simulator(bool useLogicQbits) :                      // definisco il costruttore che verrà chiamato da Instance()
-        fNqbits(100),
-        fUseLogicQbits(useLogicQbits)
+Simulator::Simulator(ConfigSimulation config) :                      // definisco il costruttore che verrà chiamato da Instance()
+        fNqbits(config.fNqbits),
+        fUseLogicQbits(config.fIsLogic),
+        fNSimulations(config.fNSimulations)
 {
     fChannels = new Channel *[2];                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
 
@@ -18,8 +19,8 @@ Simulator::Simulator(bool useLogicQbits) :                      // definisco il 
     fChannels[0]->SetNoisy(false);
     fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(False)?
 
-//    gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
-    //gRandom->SetSeed(42);                                         // The answer to life the universe and everything
+    gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
+    gRandom->SetSeed(42);                                         // The answer to life the universe and everything
 }
 
 Simulator::~Simulator() {
@@ -29,8 +30,8 @@ Simulator::~Simulator() {
     printf("\nSimulation ended..\n\n");
 }
 
-Simulator* Simulator::Instance(bool useLogicQbits) {
-    if(!fgSimulator) fgSimulator = new Simulator(useLogicQbits);   // se il puntatore globale non è ancora istanziato: lo faccio puntare ad un oggetto Simulator che creo qua
+Simulator* Simulator::Instance(ConfigSimulation config) {
+    if(!fgSimulator) fgSimulator = new Simulator(config);   // se il puntatore globale non è ancora istanziato: lo faccio puntare ad un oggetto Simulator che creo qua
     return fgSimulator;
 }
 
@@ -50,8 +51,8 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
 
     auto qbit = new Qbit(fUseLogicQbits);                                // creo un Qbit
 
-    for(int simulation = 0; simulation < fSimulations; simulation++) {   // fSimulations = numero di simulazioni
-        printf("\rSimulation %u/%u", simulation+1, fSimulations);
+    for(int simulation = 0; simulation < fNSimulations; simulation++) {   // fNSimulations = numero di simulazioni
+        printf("\rSimulation %u/%u", simulation+1, fNSimulations);
         for (int N = 1; N <= fNqbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
             phone->InitResults(currentData);
 
@@ -85,7 +86,6 @@ Simulator* Simulator::GeneratePlots() {
         std::cerr << "Error opening file" << std::endl;
         return this;
     }
-
     auto tree = dynamic_cast<TTree *>(file.Get(fTreename));     // ??? cosa faccio qua?
     if (tree && !tree->IsZombie()) {
         PlotPdfPerLenght(tree);
@@ -127,7 +127,7 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
         if (NSamebasis != 0)  fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
         else fractionOfIntercepted = 0.;
         j = entry % fNqbits;
-        PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fSimulations);
+        PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fNSimulations);
     }
 
     // create fit, then create arrays of means and sigmas
@@ -197,7 +197,7 @@ void Simulator::PlotNinterceptedVsN(TTree *tree) {
     auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
 
     double fractionOfIntercepted = 0.;
-    double distrNormFactor = 1. / fSimulations / fNqbits;
+    double distrNormFactor = 1. / fNSimulations / fNqbits;
 //
 //    auto entries = tree->GetEntries();
 //    for (int entry = 0; entry < entries; ++entry) {
@@ -208,7 +208,7 @@ void Simulator::PlotNinterceptedVsN(TTree *tree) {
 //        if (NSamebasis != 0) fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
 //        else fractionOfIntercepted = 0.;
 //
-//        NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fSimulations);
+//        NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fNSimulations);
 //
 //        Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
 //    }
@@ -227,7 +227,7 @@ void Simulator::HistNintercepted(TTree *tree) {
     data->SetAddress(&currentData);
 
     double fractionOfIntercepted = 0.;
-    double distrNormFactor = 1. / fSimulations / fNqbits;
+    double distrNormFactor = 1. / fNSimulations / fNqbits;
 
     auto NVsNHist_distr = new TH1D(fNDistrName, fNDistrName, 10, 0, 1);
     auto entries = tree->GetEntries();

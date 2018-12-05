@@ -20,14 +20,14 @@
 
 class Simulator {
 public:
-    static Simulator *Instance(bool useLogicQbits = false);
+    static Simulator *Instance(ConfigSimulation config);
 
     Simulator* RunSimulation();
     Simulator* GeneratePlots();
     Simulator* ShowResults(TCanvas *cx);
 
 private:
-    Simulator(bool useLogicQbits);                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
+    Simulator(ConfigSimulation config);                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     ~Simulator();
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
@@ -48,7 +48,7 @@ private:
     static constexpr const char* fNDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
-    static const int fSimulations = 2000;
+    static const int fNSimulations;
 
     static Simulator* fgSimulator;                  // global pointer
 

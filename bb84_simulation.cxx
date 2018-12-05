@@ -6,11 +6,13 @@
 #include "Simulator.h"
 #include "StopWatch.h"
 #include <TCanvas.h>
+#include <TF1.h>
 #endif
 
-void bb84_simulation(){
+void bb84_simulation(bool useLogic = false, int Nqbit = 100, int nSim = 2000, double sigmaNoise = 0, TF1* fNoise = nullptr){
     StopWatch watch;
     auto cx = new TCanvas();
-    auto sim = Simulator::Instance(false);
+    ConfigSimulation config(useLogic, Nqbit, nSim, sigmaNoise, fNoise);
+    auto sim = Simulator::Instance(config);
     sim->RunSimulation()->GeneratePlots()->ShowResults(cx);
 }
