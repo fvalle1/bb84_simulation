@@ -44,3 +44,15 @@ build
 *.gif
 
 *.cxx_tmp_7349
+
+*.aux
+
+*.dvi
+
+*.log
+
+relazione/template\.synctex\.gz
+
+*.toc
+
+relazione/report\.synctex\.gz

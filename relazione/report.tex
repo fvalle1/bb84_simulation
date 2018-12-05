@@ -1,0 +1,114 @@
+\documentclass[11 pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel} %lingua
+\usepackage{textcomp}
+\usepackage[a4paper,centering,top=2.5cm,bottom=3.0cm,outer=2.2cm,inner=2.2cm]{geometry}	%%reduce margins
+\usepackage{graphicx} %immagini
+\usepackage{float} %forza [htb]
+\usepackage{listings}
+\usepackage{color}
+\usepackage{fancyhdr}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\definecolor{myblue}{rgb}{0.44,0.62,0.78}
+
+
+\usepackage[unicode=true]{hyperref} %indice pdf
+\hypersetup{breaklinks=true,
+pdfauthor={},
+pdftitle={},
+colorlinks=true,
+citecolor=blue,
+urlcolor=blue,
+linkcolor=black
+}
+
+\lstdefinestyle{myRoot}{
+backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+breaklines=true,                 % sets automatic line breaking
+captionpos=b,                    % sets the caption-position to bottom
+commentstyle=\color{mygray},    % comment style
+keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+keywordstyle=\color{myblue},       % keyword style
+identifierstyle=\color{black},
+language=C++,                 % the language of the code
+morekeywords={*, TCanvas, Simulator},
+numbers=none,                    % where to put the line-numbers; possible values are (none, left, right)
+numbersep=5pt,                   % how far the line-numbers are from the code
+numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+showstringspaces=false,          % underline spaces within strings only
+showtabs=false,                  % show tabs within strings adding particular underscores
+stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+stringstyle=\color{myblue},     % string literal style
+tabsize=2,                     % sets default tabsize to 2 spaces
+}
+
+\pagestyle{fancy}
+\lhead{}
+\cfoot{Filippo Valle}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}% Remove header rule
+\renewcommand{\footrulewidth}{0.3pt}
+
+\author{Francesco Bonacina  Filippo Valle}
+\date{\today}
+\title{Relazione tans: Protocollo BB84}
+
+
+\begin{document}
+\maketitle
+
+\thispagestyle{empty}
+\tableofcontents
+
+\section{Introduzione}
+
+\section{Compile and run}
+
+\begin{lstlisting}[language=bash, style=myRoot]
+$: root -l compile.C
+root [0] 
+Processing compile.C...
+root [1] .x bb84_simulation.cxx+
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash, style=myRoot]
+$: root -l compile.C
+root [0] 
+Processing compile.C...
+root [1] sim = Simulator::Instance()
+root [2] cx = new TCanvas()
+root [3] sim->ShowResults(cx) 
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=bash, style=myRoot]
+root [0] 
+Processing compile.C...
+root [1] sim = Simulator::Instance()
+root [2] sim->RunSimulation()
+root [3] sim->GeneratePlots()
+root [4] cx = new TCanvas()
+root [5] sim->ShowResults(cx)
+\end{lstlisting}
+
+
+\subsection{CMake}
+\begin{lstlisting}[language=bash]
+$: mkdir build && cd build
+$: cmake ..
+$: make bb84
+$: ./bb84
+\end{lstlisting}
+
+\section{Results}
+
+
+
+\end{document}
