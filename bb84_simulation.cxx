@@ -10,7 +10,7 @@
 #include <TF1.h>
 #endif
 
-void bb84_simulation(bool useLogic = false, int Nqbit = 100, int nSim = 2000, double sigmaNoise = 0, TF1* fNoise = nullptr){
+void bb84_simulation(bool useLogic = false, int Nqbit = 100, int nSim = 30000, double sigmaNoise = 0, TF1* fNoise = nullptr){
     StopWatch watch;
     auto cx = new TCanvas();
     ConfigSimulation config(useLogic, Nqbit, nSim, sigmaNoise, fNoise);

@@ -23,14 +23,14 @@ class ConfigSimulation {
   double fSigmaNoise;
   TF1* fPdfNoise;
   
-  ConfigSimulation(bool IsLogic=true, int NQbits=100, int NSimulations=2000, double SigmaNoise=0.1, TF1* PdfNoise=NULL){
+  ConfigSimulation(bool IsLogic=false, int NQbits=100, int NSimulations=10, double SigmaNoise=0.1, TF1* PdfNoise=NULL){
     fIsLogic = IsLogic;
     fNQbits = NQbits;
-    NSimulations = fNSimulations;
-    SigmaNoise = fSigmaNoise;
-    PdfNoise = fPdfNoise;
+    fNSimulations = NSimulations;
+    fSigmaNoise = SigmaNoise;
+    fPdfNoise = PdfNoise;
   };
-  ~ConfigSimulation();
+  ~ConfigSimulation(){};
   
 };
 

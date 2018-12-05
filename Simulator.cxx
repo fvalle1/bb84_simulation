@@ -17,9 +17,9 @@ Simulator::Simulator(ConfigSimulation config) :                      // definisc
 
     fChannels[0] = new Channel();
     fChannels[0]->SetNoisy(false);
-    fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(False)?
+    fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(false)?
 
-    gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
+    //gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
     gRandom->SetSeed(42);                                         // The answer to life the universe and everything
 }
 
@@ -38,7 +38,7 @@ Simulator* Simulator::Instance(ConfigSimulation config) {
 
 Simulator* Simulator::RunSimulation(){                           // quando lancio la simulation creo un telefono e la struttura dove salvare i dati
     //hists/file
-    printf("\nRunning simulation..\n");
+  printf("\nRunning simulation.. \t --> \t # of simulations: %d\n", fNSimulations);
     auto phone = new Phone();
     static fStructToSave currentData;
 
@@ -60,7 +60,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
-//                Buddy::InterceptQbit(qbit);
+                Buddy::InterceptQbit(qbit);
                 fChannels[1]->PassQbit(qbit);
                 Buddy::ReceiveQbit(qbit);
                 phone->MakeCallClassicalChannel(qbit, currentData);
@@ -102,7 +102,7 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     static fStructToSave currentData;
     data->SetAddress(&currentData);
 
-    auto NInteceptedVsNqbitHist = new TGraphErrors(fNqbits);
+    auto NInteceptedVsNqbitHist = new TGraphErrors(fNqbits);  //number of photons intercepted vs. number of photons measured in the same base
     auto probVsNHist = new TGraphErrors(fNqbits);
     auto probVsNHist_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fNqbits, 0);
 
@@ -148,18 +148,15 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
             currentMean = PdfperLenghtCom[i]->GetMean();
             currentSigma = PdfperLenghtCom[i]->GetStdDev();
         }
-        // if (i == 10) {
+        if (Qbit::DEBUG) {
         std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
                   << fit_gaus->GetParameter("Sigma") << std::endl;
-        //}
         std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
         std::cout<<"chi: "<<TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<<std::endl;
-        //        double p_value = fit_gaus->GetProb();
-//        if(i<=5||i>=95) std::cout <<fit_gaus->GetProb()<<std::endl;
-
+	}
+	
         NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
         NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
-
 
         int N = i+1;
         double p = TMath::Power(currentMean, N); //mean ^N
@@ -170,10 +167,10 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 
     // delete histograms
     for(int i=0; i<fNqbits; i++){
-        //delete PdfperLenghtCom[i];
-        PdfperLenghtCom[i]->Write();
+        delete PdfperLenghtCom[i];
+        //PdfperLenghtCom[i]->Write();
     }
-//    delete[] PdfperLenghtCom;
+    delete[] PdfperLenghtCom;
     delete fit_gaus;
 
     NInteceptedVsNqbitHist->SetTitle(fNPlotName);
@@ -189,35 +186,38 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 
 
 void Simulator::PlotNinterceptedVsN(TTree *tree) {
-    printf("\nPlotting plot of N intercepted vs N\n");
+    printf("\nPlotting plot of N intercepted vs total N sent\n");
     TBranch *data = tree->GetBranch(fBranchName);
     static fStructToSave currentData;
     data->SetAddress(&currentData);
 
-    auto Useful_distr = new TH1D(fUsefulPlotName, "Useful", 10, 0, 1);
+    auto NSameBasisVsNqbit = new TH1D(fUsefulHistName, "fraction of qbits with same base", fNqbits+1, -0.5, fNqbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
+    auto Useful_distr = new TH1D(fUsefulPlotName, "# useful photons", 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
 
     double fractionOfIntercepted = 0.;
     double distrNormFactor = 1. / fNSimulations / fNqbits;
-//
-//    auto entries = tree->GetEntries();
-//    for (int entry = 0; entry < entries; ++entry) {
-//        printf("\r%u/%llu", entry + 1, entries);
-//        tree->GetEvent(entry);
-//
-//        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-//        if (NSamebasis != 0) fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-//        else fractionOfIntercepted = 0.;
-//
-//        NVsNHist->Fill(currentData.Ntot, fractionOfIntercepted / fNSimulations);
-//
-//        Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-//    }
 
+    auto entries = tree->GetEntries();
+    for (int entry = 0; entry < entries; ++entry) {
+        printf("\r%u/%llu", entry + 1, entries);
+        tree->GetEvent(entry);
+
+        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+        if (NSamebasis != 0) fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+        else fractionOfIntercepted = 0.;
+
+	NSameBasisVsNqbit->Fill(currentData.Ntot, static_cast<double>(NSamebasis)/(fNSimulations*currentData.Ntot));
+        Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
+	if(Qbit::DEBUG) printf("___ point %d: %2.3f\n", entry, static_cast<double>(NSamebasis) / currentData.Ntot);
+    }
+
+    NSameBasisVsNqbit->Write();
+    NSameBasisVsNqbit->SetDirectory(nullptr);
     Useful_distr->Write();
-
     Useful_distr->SetDirectory(nullptr);
 
     delete Useful_distr;
+    delete NSameBasisVsNqbit;
 }
 
 void Simulator::HistNintercepted(TTree *tree) {
@@ -265,14 +265,15 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         if (NVsNHist_distr) NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D *>(file.Get(fUsefulPlotName));
         if (UsefulHist) UsefulHist->SetDirectory(nullptr);
-
+	auto NSameBasisVsNqbit = dynamic_cast<TH1D*>(file.Get(fUsefulHistName));
+	if (NSameBasisVsNqbit) NSameBasisVsNqbit->SetDirectory(nullptr);
 
         file.Close();
 
         cx->cd();
         cx->Clear();
-        cx->SetCanvasSize(900, 600);
-        cx->SetWindowSize(910, 610);
+        cx->SetCanvasSize(1800, 1000);
+        cx->SetWindowSize(1850, 1030);
         cx->SetTitle("bb84");
         cx->SetName("bb84");
         cx->Divide(3, 2);
@@ -288,6 +289,13 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         line.SetLineColor(kRedBlue);
         line.DrawLine(0,0.25,fNqbits,0.25);
 
+	cx->cd(3);
+	SetStylesAndDraw(NSameBasisVsNqbit, "Number_of_sent_qbits", "Percentage_of_qbits_with_same_base", kBlue, 2);
+	TLine line2;
+        line2.SetLineWidth(3);
+        line2.SetLineColor(kRedBlue);
+        line2.DrawLine(0,0.5,fNqbits,0.5);
+
         cx->cd(4)->SetLogy();
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
@@ -297,6 +305,13 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         cx->cd(6);
         SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow - 3, 2);
+	double p_success = 0.5;
+	int n_trials = UsefulHist->GetEntries();  
+	TF1 *fit_binomial = new TF1("fit_binomial", "TMath::Poisson([0],[1])", 0., 1.);    
+	UsefulHist->Fit("fit_binomial", "Q+");
+	UsefulHist->Draw("same");
+
+	delete fit_binomial;
 
     } else {
         std::cerr << "TCanvas is nullptr" << std::endl;

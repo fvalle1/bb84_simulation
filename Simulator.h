@@ -49,6 +49,7 @@ private:
     static constexpr const char* fNDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
+    static constexpr const char* fUsefulHistName = "NSameBasisVsNqbit";
     int fNSimulations;
 
     static Simulator* fgSimulator;                  // global pointer
