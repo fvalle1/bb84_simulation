@@ -21,6 +21,7 @@
 
 class Simulator {
 public:
+    static Simulator *Instance();
     static Simulator *Instance(ConfigSimulation config);
 
     Simulator* RunSimulation();
@@ -28,6 +29,7 @@ public:
     Simulator* ShowResults(TCanvas *cx);
 
 private:
+    Simulator();                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     Simulator(ConfigSimulation config);                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     ~Simulator();
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor

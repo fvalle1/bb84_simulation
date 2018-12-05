@@ -2,16 +2,7 @@
 #define CONFIGSIMULATION_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include "Buddy.h"
-#include "Channel.h"
-#include "Phone.h"
-#include <TFile.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-#include <TH1D.h>
-#include <TGraphErrors.h>
-#include <stdio.h>
-#include <TLine.h>
+#include <TF1.h>
 #endif
 
 class ConfigSimulation {
