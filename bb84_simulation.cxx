@@ -5,6 +5,7 @@
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include "Simulator.h"
 #include "StopWatch.h"
+#include "ConfigSimulation.h"
 #include <TCanvas.h>
 #include <TF1.h>
 #endif

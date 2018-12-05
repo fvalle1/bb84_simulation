@@ -2,14 +2,14 @@
 // Created by Filippo Valle on 15/11/2018.
 //
 
-
+ 
 #include "Simulator.h"
 
 
 Simulator* Simulator::fgSimulator = nullptr;                    // global pointer inizializzato a NULL
 
 Simulator::Simulator(ConfigSimulation config) :                      // definisco il costruttore che verrà chiamato da Instance()
-        fNqbits(config.fNqbits),
+        fNqbits(config.fNQbits),
         fUseLogicQbits(config.fIsLogic),
         fNSimulations(config.fNSimulations)
 {

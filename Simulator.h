@@ -9,6 +9,7 @@
 #include "Buddy.h"
 #include "Channel.h"
 #include "Phone.h"
+#include "ConfigSimulation.h"
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TStyle.h>
@@ -48,7 +49,7 @@ private:
     static constexpr const char* fNDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
-    static const int fNSimulations;
+    int fNSimulations;
 
     static Simulator* fgSimulator;                  // global pointer
 
