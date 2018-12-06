@@ -25,10 +25,10 @@ Simulator::Simulator() :                      // definisco il costruttore che ve
 Simulator::Simulator(ConfigSimulation config) :                      // definisco il costruttore che verrà chiamato da Instance()
         fNqbits(config.fNQbits),
         fUseLogicQbits(config.fIsLogic),
-        fNSimulations(config.fNSimulations)
+        fNSimulations(config.fNSimulations),
+        fInfos(std::move(config.fInfos))
 {
-    fChannels = new Channel *[2]();                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
-
+    fChannels = new Channel*[2];                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
     fChannels[0] = new Channel();
     fChannels[0]->SetNoisy(config.fPdfNoise);
     fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(false)?
