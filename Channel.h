@@ -16,6 +16,7 @@ public:
     ~Channel();
     void PassQbit(Qbit* qbit);                                  //trasmissione del qbit: prende il qbit, lo altera se il canale è rumoroso
     inline void SetNoisy(std::function<double(void)> pdfNoise) {fPdf=std::move(pdfNoise);};
+    inline bool IsNoisy() const {return fPdf? true: false;};
 };
 
 #endif
