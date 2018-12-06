@@ -25,7 +25,7 @@ Simulator::Simulator() :                      // definisco il costruttore che ve
 Simulator::Simulator(ConfigSimulation config) :                      // definisco il costruttore che verrà chiamato da Instance()
         fNqbits(config.fNQbits),
         fUseLogicQbits(config.fIsLogic),
-        fNSimulations(config.fNSimulations)
+        fNSimulations(config.fNSimulations),
 {
     fChannels = new Channel *[2]();                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
 
@@ -195,7 +195,7 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     delete[] PdfperLenghtCom;
 //    delete fit_gaus;
 
-    NInteceptedVsNqbitHist->SetTitle(fNPlotName);
+    NInteceptedVsNqbitHist->SetTitle(TString::Format("Naltered_vs_Nsent_%s", fInfos));
     NInteceptedVsNqbitHist->Write(fNPlotName, TObject::kSingleKey | TObject::kOverwrite);
     probVsNHist->SetTitle(fProbabilityTeoPlotName);
     probVsNHist->Write(fProbabilityPlotName, TObject::kSingleKey | TObject::kOverwrite);
@@ -213,7 +213,7 @@ void Simulator::PlotNinterceptedVsN(TTree *tree) {
     static fStructToSave currentData;
     data->SetAddress(&currentData);
 
-    auto NSameBasisVsNqbit = new TH1D(fUsefulHistName, "fraction of qbits with same base", fNqbits, 0.5, fNqbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
+    auto NSameBasisVsNqbit = new TH1D(fUsefulHistName, TString::Format("NSameBase_vs_Nsent_%s", fNqbits), 0.5, fNqbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
     auto Useful_distr = new TH1D(fUsefulPlotName, "# useful photons", 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
 
     double fractionOfIntercepted = 0.;

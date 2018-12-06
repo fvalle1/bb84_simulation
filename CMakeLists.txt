@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.10)
 project(bb84_simulation)
 
 ##root
+include_directories(
+        /home/francescobonacina/root/include
+        /home/francescobonacina/anaconda3/include
+        .)
+link_directories(/home/francescobonacina/anaconda3/lib)
+
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS RIO Net)
 include(${ROOT_USE_FILE})
