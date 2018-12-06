@@ -42,9 +42,8 @@ private:
     Channel** fChannels;
     int fNqbits;
     int fNSimulations;
-
     bool fUseLogicQbits;
-
+    std::string fInfos;
 
     static constexpr const char* fFilename = "bb84_simulation.root";
     static constexpr const char* fTreename = "bb84";

@@ -28,7 +28,7 @@ void bb84_simulation(bool useLogic = false, int Nqbit = 100, int nSim = 30000, b
         fnoise = std::move(GaussianNoise);
     }
 
-    ConfigSimulation config(useLogic, Nqbit, nSim, withEve, fnoise);
+    ConfigSimulation config(useLogic, Nqbit, nSim, withEve, gSigma, fnoise);
 
     auto sim = Simulator::Instance(config);
     sim->RunSimulation()->GeneratePlots()->ShowResults(cx);
