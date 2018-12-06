@@ -84,7 +84,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
-//                Buddy::InterceptQbit(qbit);
+                Buddy::InterceptQbit(qbit);
                 fChannels[1]->PassQbit(qbit);
                 Buddy::ReceiveQbit(qbit);
                 phone->MakeCallClassicalChannel(qbit, currentData);
@@ -195,7 +195,7 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     delete[] PdfperLenghtCom;
 //    delete fit_gaus;
 
-    NInteceptedVsNqbitHist->SetTitle(fNPlotName);
+    NInteceptedVsNqbitHist->SetTitle(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
     NInteceptedVsNqbitHist->Write(fNPlotName, TObject::kSingleKey | TObject::kOverwrite);
     probVsNHist->SetTitle(fProbabilityTeoPlotName);
     probVsNHist->Write(fProbabilityPlotName, TObject::kSingleKey | TObject::kOverwrite);
@@ -213,7 +213,7 @@ void Simulator::PlotNinterceptedVsN(TTree *tree) {
     static fStructToSave currentData;
     data->SetAddress(&currentData);
 
-    auto NSameBasisVsNqbit = new TH1D(fUsefulHistName, "fraction of qbits with same base", fNqbits, 0.5, fNqbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
+    auto NSameBasisVsNqbit = new TH1D(fUsefulHistName, TString::Format("%s_%s", fUsefulHistName, fInfos.c_str()), fNqbits, 0.5, fNqbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
     auto Useful_distr = new TH1D(fUsefulPlotName, "# useful photons", 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
 
     double fractionOfIntercepted = 0.;
