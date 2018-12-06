@@ -27,7 +27,7 @@ class ConfigSimulation {
     if(PdfNoise) fPdfNoise = std::move(PdfNoise);
     else fPdfNoise = nullptr;
     Buddy::EveIsSleeping = !withEve;
-    fInfos = std::string(TString::Format(""));
+    fInfos = std::string(TString::Format("N%d_sim%d%s%s_%f",NQbits, NSimulations, withEve?"_Eve_":"_", sigma<=1e-5?"noisy":"quiet", sigma));
   };
 
   ~ConfigSimulation() = default;
