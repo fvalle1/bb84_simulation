@@ -24,5 +24,7 @@ int compile(TString myopt = "fast"){
     gSystem->CompileMacro("Phone.cxx", opt.Data());
     gSystem->CompileMacro("ConfigSimulation.cxx", opt.Data());
     gSystem->CompileMacro("Simulator.cxx", opt.Data());
+    gSystem->CompileMacro("Analyzer.cpp", opt.Data());
+
     return 0;
 }

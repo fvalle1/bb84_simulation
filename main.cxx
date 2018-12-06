@@ -6,11 +6,19 @@
 #include "ConfigSimulation.h"
 #include "TelegramWatch.h"
 #include "StopWatch.h"
+#include "Analyzer.h"
 
 int main(){
     TelegramWatch twatch("bb84");
-    ConfigSimulation config(false, 100, 100, true, 0, nullptr);
-    auto sim = Simulator::Instance(config);
-    sim->RunSimulation()->GeneratePlots();
+    auto cx = new TCanvas();
+    std::vector<ConfigSimulation> configs;
+    configs.emplace_back(ConfigSimulation(true, 100, 2000, false, 0., nullptr));
+    configs.emplace_back(ConfigSimulation(false, 100, 2000, false, 0., nullptr));
+
+    Analyzer * MyAnalizer;
+    MyAnalizer = new Analyzer(configs);
+    MyAnalizer->RunAnalyzer();
+    MyAnalizer->JoinResults(cx);
+
     return 0;
 }

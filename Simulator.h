@@ -23,6 +23,10 @@ class Simulator {
 public:
     static Simulator *Instance();
     static Simulator *Instance(ConfigSimulation config);
+    static constexpr const char* fFilename = "bb84_simulation.root";
+    static constexpr const char* fNPlotName = "Naltered_vs_Nsent";
+    static constexpr const char* fUsefulHistName = "NSameBase_vs_Nsent";
+
 
     Simulator* RunSimulation();
     Simulator* GeneratePlots();
@@ -45,16 +49,13 @@ private:
     bool fUseLogicQbits;
     std::string fInfos;
 
-    static constexpr const char* fFilename = "bb84_simulation.root";
     static constexpr const char* fTreename = "bb84";
     static constexpr const char* fBranchName = "dataBranch";
     static constexpr const char* fProbabilityPlotName = "probability_vs_N";
     static constexpr const char* fProbabilityTeoPlotName = "probability_vs_N_teo";
-    static constexpr const char* fNPlotName = "Naltered_vs_Nsent";
     static constexpr const char* fNDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
-    static constexpr const char* fUsefulHistName = "NSameBase_vs_Nsent";
 
 
     void SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;

@@ -45,7 +45,7 @@ add_executable(
         main.cxx
         StopWatch.cxx
         TelegramWatch.cxx
-        )
+        Analyzer.cpp Analyzer.h)
 
 target_link_libraries(
         bb84

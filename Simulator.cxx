@@ -67,7 +67,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
     static fStructToSave currentData;
 
 
-    TFile file(fFilename, "RECREATE");                             // creo un file
+    TFile file(fFilename, "UPDATE");                             // creo un file
     auto tree = new TTree(fTreename, fTreename);                   // creo un tree
     tree->Branch(fBranchName, &currentData.Ntot, "Ntot/I:SameBasisIntercept:SameBasisNoIntercept"); // &currentData.Not -->  indirizzo del primo elemento della sruttura
     // "Ntot:...." --> concatenation of all the variable names and types separated by ':'
@@ -103,7 +103,8 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
     return this;
 }
 
-Simulator* Simulator::GeneratePlots() {
+Simulator* Simulator::
+GeneratePlots() {
     printf("\nGenerating plots..\n");
     TFile file(fFilename, "UPDATE");                           // continuo a scrivere sul file che già esiste
     if (file.IsZombie()) {
@@ -196,7 +197,8 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 //    delete fit_gaus;
 
     NInteceptedVsNqbitHist->SetTitle(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
-    NInteceptedVsNqbitHist->Write(fNPlotName, TObject::kSingleKey | TObject::kOverwrite);
+    NInteceptedVsNqbitHist->SetName(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
+    NInteceptedVsNqbitHist->Write();//(TString::Format("%s_%s",fNPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     probVsNHist->SetTitle(fProbabilityTeoPlotName);
     probVsNHist->Write(fProbabilityPlotName, TObject::kSingleKey | TObject::kOverwrite);
     probVsNHist_teo->SetTitle(fProbabilityTeoPlotName);
