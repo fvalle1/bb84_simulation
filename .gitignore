@@ -55,3 +55,4 @@ relazione/template\.synctex\.gz
 *.toc
 
 relazione/report\.synctex\.gz
+CMakeLists.txt
