@@ -33,7 +33,7 @@ void TelegramWatch::callIFTTT() const {
     char encCPU[20];                       // encoded CPU: tempo della CPU scritto in caratteri
     char url[200];
     
-    char* encName = curl_easy_escape(curl, fName, 25);            // This function converts the given input string to a URL encoded string and returns that as a new allocated string.
+    char* encName = curl_easy_escape(curl, fName, 5);            // This function converts the given input string to a URL encoded string and returns that as a new allocated string.
     sprintf(encWall, "%4.2fsec[Wall_time]", this->GetWall());     // Scrivo in caratteri il tempo reale (troncato alla seconda cifra decimale)
     sprintf(encCPU, "%4.2fsec[CPU_time]", this->GetCPU());
     sprintf(url, "%s?value1=%s&value2=%s&value3=%s", fURL, encName, curl_easy_escape(curl, encWall, 19), curl_easy_escape(curl, encCPU, 18));

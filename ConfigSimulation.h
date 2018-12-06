@@ -12,6 +12,7 @@ class ConfigSimulation {
   bool fIsLogic;
   int fNQbits;
   int fNSimulations;
+  bool fWithEve;
   std::function<double(void)> fPdfNoise;
   std::string fInfos;
   
@@ -24,6 +25,7 @@ class ConfigSimulation {
     fIsLogic = IsLogic;
     fNQbits = NQbits;
     fNSimulations = NSimulations;
+    fWithEve = withEve;
     if(sigma>1e-5) fPdfNoise = std::move(PdfNoise);
     else fPdfNoise = nullptr;
     Buddy::EveIsSleeping = !withEve;
