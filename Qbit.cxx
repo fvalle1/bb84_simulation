@@ -2,6 +2,7 @@
 // Created by Filippo Valle on 15/11/2018.
 //
 
+#include <TF1.h>
 #include "Qbit.h"
 
 Qbit::Qbit(bool islogic) :    fIsLogic(islogic) {
@@ -135,8 +136,9 @@ ostream& operator<<(ostream& os, const Qbit q){
     return os;
 }
 
-void Qbit::AddNoise() {
-    for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit]+=gRandom->Gaus(0, 0.2);                          // qua magari la sigma andrà passata come variabile
+void Qbit::AddNoise(std::function<double()> pdfNoise) {
+    // quso la pdf passata come variabile
+    for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) {fTheta[iqbit]+=pdfNoise();}
 }
 
 

@@ -4,13 +4,17 @@
 
 #include "Buddy.h"
 
+bool Buddy::EveIsSleeping = false;
+
 void Buddy::InterceptQbit(Qbit *qbit) {
-    if(Qbit::DEBUG) {
-        printf("\nIntercepting qbit..\n");
-        std::cout << "received qbit: " << *qbit << std::endl;
+    if (!EveIsSleeping) {
+        if (Qbit::DEBUG) {
+            printf("\nIntercepting qbit..\n");
+            std::cout << "received qbit: " << *qbit << std::endl;
+        }
+        ReceiveQbit(qbit);
+        qbit->PrepareState(qbit->GetBase(), qbit->GetState());
     }
-    ReceiveQbit(qbit);
-    qbit->PrepareState(qbit->GetBase(), qbit->GetState());
 }
 
 void Buddy::ReceiveQbit(Qbit *qbit){

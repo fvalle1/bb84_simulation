@@ -1,6 +1,6 @@
 #include "Channel.h"
 
-Channel::Channel(bool isNoisy) : fIsNoisy(isNoisy){
+Channel::Channel() : fPdf(nullptr){
     if(Qbit::DEBUG) printf("\nCreating Channel..\n");
 
 }
@@ -16,8 +16,8 @@ void Channel::PassQbit(Qbit* qbit) {
         std::cout<<*qbit<<std::endl;
     }
 
-    if(fIsNoisy){
-        qbit->AddNoise();
+    if(fPdf){
+        qbit->AddNoise(fPdf);
     }
 
     if(Qbit::DEBUG) {

@@ -34,7 +34,6 @@
 
 cmake-build-debug/
 
-CMakeLists\.txt
 *.pcm
 *~
 build

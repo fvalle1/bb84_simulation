@@ -10,10 +10,26 @@
 #include <TF1.h>
 #endif
 
-void bb84_simulation(bool useLogic = false, int Nqbit = 100, int nSim = 30000, double sigmaNoise = 0, TF1* fNoise = nullptr){
+double gSigma = 0;
+
+double GaussianNoise(){
+    return gRandom->Gaus(0, gSigma);
+}
+
+
+void bb84_simulation(bool useLogic = false, int Nqbit = 100, int nSim = 30000, bool withEve = true, double sigma = 0){
     StopWatch watch;
     auto cx = new TCanvas();
-    ConfigSimulation config(useLogic, Nqbit, nSim, sigmaNoise, fNoise);
+    std::function<double(void)> fnoise;
+    if(sigma<1e-5){
+        fnoise = nullptr;
+    }else{
+        gSigma = sigma;
+        fnoise = std::move(GaussianNoise);
+    }
+
+    ConfigSimulation config(useLogic, Nqbit, nSim, withEve, fnoise);
+
     auto sim = Simulator::Instance(config);
     sim->RunSimulation()->GeneratePlots()->ShowResults(cx);
 }

@@ -13,7 +13,7 @@ Simulator::Simulator() :                      // definisco il costruttore che ve
         fUseLogicQbits(false),
         fNSimulations(1000)
 {
-    fChannels = new Channel *[2];                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
+    fChannels = new Channel *[2]();                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
 
     fChannels[0] = new Channel();
     fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(false)?
@@ -27,10 +27,10 @@ Simulator::Simulator(ConfigSimulation config) :                      // definisc
         fUseLogicQbits(config.fIsLogic),
         fNSimulations(config.fNSimulations)
 {
-    fChannels = new Channel *[2];                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
+    fChannels = new Channel *[2]();                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
 
     fChannels[0] = new Channel();
-    fChannels[0]->SetNoisy(config.fSigmaNoise==0);
+    fChannels[0]->SetNoisy(config.fPdfNoise);
     fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(false)?
 
     //gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
@@ -50,7 +50,12 @@ Simulator* Simulator::Instance() {
 }
 
 Simulator* Simulator::Instance(ConfigSimulation config) {
-    if(!fgSimulator) fgSimulator = new Simulator(config);   // se il puntatore globale non è ancora istanziato: lo faccio puntare ad un oggetto Simulator che creo qua
+    if (!fgSimulator) {
+        fgSimulator = new Simulator(config);   // se il puntatore globale non è ancora istanziato: lo faccio puntare ad un oggetto Simulator che creo qua
+    }else {
+        fgSimulator->~Simulator();
+        new(fgSimulator) Simulator(config);
+    }
     return fgSimulator;
 }
 
@@ -79,7 +84,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
-                Buddy::InterceptQbit(qbit);
+//                Buddy::InterceptQbit(qbit);
                 fChannels[1]->PassQbit(qbit);
                 Buddy::ReceiveQbit(qbit);
                 phone->MakeCallClassicalChannel(qbit, currentData);
@@ -150,29 +155,27 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     }
 
     // create fit, then create arrays of means and sigmas
-    TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
+//    TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
+//    fit_gaus->SetParLimits(1, 0., 1.);
 
     double p_value = 0;
     for (int i = 0; i < fNqbits; i++) {
-        if(Qbit::DEBUG) PdfperLenghtCom[i]->Fit("fit_gaus", "Q0");
-        else PdfperLenghtCom[i]->Fit("fit_gaus", "Q0");
-
         double currentMean = 0.;
         double currentSigma = 0.;
 
-        if(TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<2){
-            currentMean = fit_gaus->GetParameter("Mean");
-            currentSigma = fit_gaus->GetParameter("Sigma");
-        } else{
+//        if(TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<2){
+//            currentMean = fit_gaus->GetParameter("Mean");
+//            currentSigma = fit_gaus->GetParameter("Sigma");
+//        } else{
             currentMean = PdfperLenghtCom[i]->GetMean();
             currentSigma = PdfperLenghtCom[i]->GetStdDev();
-        }
-        if (Qbit::DEBUG) {
-            std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
-                      << fit_gaus->GetParameter("Sigma") << std::endl;
-            std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
-            std::cout<<"chi: "<<TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<<std::endl;
-        }
+//        }
+//        if (Qbit::DEBUG) {
+//            std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
+//                      << fit_gaus->GetParameter("Sigma") << std::endl;
+//            std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
+//            std::cout<<"chi: "<<TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<<std::endl;
+//        }
 
         NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
         NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
@@ -187,10 +190,10 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     // delete histograms
     for(int i=0; i<fNqbits; i++){
         delete PdfperLenghtCom[i];
-        //PdfperLenghtCom[i]->Write();
+//        PdfperLenghtCom[i]->Write();
     }
     delete[] PdfperLenghtCom;
-    delete fit_gaus;
+//    delete fit_gaus;
 
     NInteceptedVsNqbitHist->SetTitle(fNPlotName);
     NInteceptedVsNqbitHist->Write(fNPlotName, TObject::kSingleKey | TObject::kOverwrite);
@@ -227,7 +230,7 @@ void Simulator::PlotNinterceptedVsN(TTree *tree) {
 
         NSameBasisVsNqbit->Fill(currentData.Ntot, static_cast<double>(NSamebasis)/(fNSimulations*currentData.Ntot));
         Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-        if(Qbit::DEBUG) printf("___ point %d: %2.3f\n", entry, static_cast<double>(NSamebasis) / currentData.Ntot);
+        if(Qbit::DEBUG) printf("___ point %d: %2.3f\n", entry, static_cast<double>(NSamebasis) / (fNSimulations*currentData.Ntot));
     }
 
     NSameBasisVsNqbit->Write();

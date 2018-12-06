@@ -41,7 +41,11 @@ private:
 
     Channel** fChannels;
     int fNqbits;
+    int fNSimulations;
+
     bool fUseLogicQbits;
+
+
     static constexpr const char* fFilename = "bb84_simulation.root";
     static constexpr const char* fTreename = "bb84";
     static constexpr const char* fBranchName = "dataBranch";
@@ -52,13 +56,11 @@ private:
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
     static constexpr const char* fUsefulHistName = "NSameBasisVsNqbit";
-    int fNSimulations;
 
-    static Simulator* fgSimulator;                  // global pointer
 
     void SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
 
-ClassDef(Simulator, 0)
+    static Simulator* fgSimulator;                  // global pointer
 };
 
 

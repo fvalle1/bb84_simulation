@@ -3,6 +3,7 @@
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TF1.h>
+#include "Buddy.h"
 #endif
 
 class ConfigSimulation {
@@ -11,17 +12,19 @@ class ConfigSimulation {
   bool fIsLogic;
   int fNQbits;
   int fNSimulations;
-  double fSigmaNoise;
-  TF1* fPdfNoise;
+  std::function<double(void)> fPdfNoise;
   
-  ConfigSimulation(bool IsLogic=false, int NQbits=100, int NSimulations=10, double SigmaNoise=0.1, TF1* PdfNoise=NULL){
+  explicit ConfigSimulation(bool IsLogic = false, int NQbits = 100, int NSimulations = 10, bool withEve = true,
+                              std::function<double()> PdfNoise = nullptr) {
     fIsLogic = IsLogic;
     fNQbits = NQbits;
     fNSimulations = NSimulations;
-    fSigmaNoise = SigmaNoise;
-    fPdfNoise = PdfNoise;
+    if(PdfNoise) fPdfNoise = std::move(PdfNoise);
+    else fPdfNoise = nullptr;
+    Buddy::EveIsSleeping = withEve;
   };
-  ~ConfigSimulation(){};
+
+  ~ConfigSimulation() = default;
   
 };
 

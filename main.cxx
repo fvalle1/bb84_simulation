@@ -9,7 +9,7 @@
 
 int main(){
     TelegramWatch twatch("bb84");
-    ConfigSimulation config(true, 100, 100000, 0.1, nullptr);
+    ConfigSimulation config(false, 100, 100, true, nullptr);
     auto sim = Simulator::Instance(config);
     sim->RunSimulation()->GeneratePlots();
     return 0;

@@ -7,6 +7,7 @@
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TMath.h>
+#include <TF1.h>
 #include <TRandom3.h>
 #include <Riostream.h>
 #endif
@@ -37,7 +38,7 @@ public:
     void PrepareState(basis b, polarization pol);
     void MeasureState(basis b);
 
-    void AddNoise();
+    void AddNoise(std::function<double()>);
 
     bool operator==(const Qbit &qitCompared) const;
     bool operator!=(const Qbit &) const;

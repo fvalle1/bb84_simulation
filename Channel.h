@@ -2,21 +2,20 @@
 #define TCHANNEL_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include <TF1.h>
 #include "Qbit.h"
+#include <functional>
 #endif
 
 class Channel{
-  
- private:
-  TF1* fPdf;
-  bool fIsNoisy;
-    
- public:
-  Channel(bool isNoisy = false);
-  ~Channel();
-  void PassQbit(Qbit* qbit);                                  //trasmissione del qbit: prende il qbit, lo altera se il canale è rumoroso
-  inline void SetNoisy(bool isNoisy){fIsNoisy = isNoisy;};
+
+private:
+    std::function<double(void)> fPdf;
+
+public:
+    Channel();
+    ~Channel();
+    void PassQbit(Qbit* qbit);                                  //trasmissione del qbit: prende il qbit, lo altera se il canale è rumoroso
+    inline void SetNoisy(std::function<double(void)> pdfNoise) {fPdf=std::move(pdfNoise);};
 };
 
 #endif
