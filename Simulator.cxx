@@ -168,8 +168,8 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 //            currentMean = fit_gaus->GetParameter("Mean");
 //            currentSigma = fit_gaus->GetParameter("Sigma");
 //        } else{
-            currentMean = PdfperLenghtCom[i]->GetMean();
-            currentSigma = PdfperLenghtCom[i]->GetStdDev();
+        currentMean = PdfperLenghtCom[i]->GetMean();
+        currentSigma = PdfperLenghtCom[i]->GetStdDev();
 //        }
 //        if (Qbit::DEBUG) {
 //            std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
@@ -177,7 +177,6 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 //            std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
 //            std::cout<<"chi: "<<TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<<std::endl;
 //        }
-
         NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
         NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
 
@@ -198,7 +197,7 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
 
     NInteceptedVsNqbitHist->SetTitle(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
     NInteceptedVsNqbitHist->SetName(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
-    NInteceptedVsNqbitHist->Write();//(TString::Format("%s_%s",fNPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
+    NInteceptedVsNqbitHist->Write(TString::Format("%s_%s",fNPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     probVsNHist->SetTitle(fProbabilityTeoPlotName);
     probVsNHist->Write(fProbabilityPlotName, TObject::kSingleKey | TObject::kOverwrite);
     probVsNHist_teo->SetTitle(fProbabilityTeoPlotName);

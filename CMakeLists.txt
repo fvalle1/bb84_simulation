@@ -2,12 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(bb84_simulation)
 
 ##root
-include_directories(
-        /home/francescobonacina/root/include
-        /home/francescobonacina/anaconda3/include
-        .)
-link_directories(/home/francescobonacina/anaconda3/lib)
-
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 find_package(ROOT REQUIRED COMPONENTS RIO Net)
 include(${ROOT_USE_FILE})
@@ -36,22 +30,23 @@ ROOT_GENERATE_DICTIONARY(G__Simulator Simulator.h LINKDEF)
 add_library(Simulator SHARED Simulator.cxx G__Simulator.cxx)
 target_link_libraries(Simulator Channel Phone ConfigSimulation ${ROOT_LIBRARIES})
 
-include_directories(/Users/filippo/anaconda3/include)
-link_directories(/Users/filippo/anaconda3/lib)
+ROOT_GENERATE_DICTIONARY(G__Analyzer Analyzer.h LINKDEF)
+add_library(Analyzer SHARED Analyzer.cxx G__Analyzer.cxx)
+target_link_libraries(Analyzer Simulator ${ROOT_LIBRARIES})
 
+include_directories(~/anaconda3/include)
+link_directories(~/anaconda3/lib)
 
 add_executable(
         bb84
         main.cxx
         StopWatch.cxx
         TelegramWatch.cxx
-        Analyzer.cpp Analyzer.h)
+)
 
 target_link_libraries(
         bb84
-        Qbit
-        Channel
-        Simulator
+        Analyzer
         curl
 )
 

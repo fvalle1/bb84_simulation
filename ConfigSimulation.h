@@ -8,34 +8,24 @@
 
 class ConfigSimulation {
 
- public:
-  bool fIsLogic;
-  int fNQbits;
-  int fNSimulations;
-  bool fWithEve;
-  double fSigma;
-  std::function<double(void)> fPdfNoise;
-  std::string fInfos;
-  
-  explicit ConfigSimulation(bool IsLogic = false,
-          int NQbits = 100,
-          int NSimulations = 10,
-          bool withEve = true,
-          double sigma = 0,
-          std::function<double()> PdfNoise = nullptr) {
-    fIsLogic = IsLogic;
-    fNQbits = NQbits;
-    fNSimulations = NSimulations;
-    fWithEve = withEve;
-    fSigma = sigma;
-    if(sigma>1e-5) fPdfNoise = std::move(PdfNoise);
-    else fPdfNoise = nullptr;
-    Buddy::EveIsSleeping = !withEve;
-    fInfos = std::string(TString::Format("%s_N%d_sim%d%s%s_%4.2f", IsLogic?"L":"P", NQbits, NSimulations, withEve?"_Eve_":"_", sigma<=1e-5?"quiet":"noisy", sigma));
-  };
+public:
+    ConfigSimulation(bool IsLogic = false,
+                              int NQbits = 100,
+                              int NSimulations = 10,
+                              bool withEve = true,
+                              double sigma = 0,
+                              std::function<double()> PdfNoise = nullptr);
 
-  ~ConfigSimulation() = default;
-  
+    ConfigSimulation(const ConfigSimulation&);
+    ~ConfigSimulation() = default;
+
+    bool fIsLogic;
+    int fNQbits;
+    int fNSimulations;
+    bool fWithEve;
+    double fSigma;
+    std::function<double(void)> fPdfNoise;
+    std::string fInfos;
 };
 
 #endif 
