@@ -179,11 +179,11 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
     }
     delete[] PdfperLenghtCom;
 
-    NInteceptedVsNqbitHist->SetNameTitle(TString::Format("%s_%s", fNPlotName, fInfos.c_str()));
+    NInteceptedVsNqbitHist->SetNameTitle(TString::Format("%s_%s", fNPlotName, fInfos.c_str()), TString::Format("%s_%s", fNPlotName, fInfos.c_str()));
     NInteceptedVsNqbitHist->Write(TString::Format("%s_%s",fNPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     delete NInteceptedVsNqbitHist;
 
-    probVsNHist->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()));
+    probVsNHist->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()), TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str() ));
     probVsNHist->Write(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     delete probVsNHist;
 

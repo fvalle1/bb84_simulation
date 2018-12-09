@@ -51,7 +51,8 @@ void Analyzer::JoinResults(TCanvas *cx) {
         if (g_tmpptr) {
             if (config.fIsLogic) g_tmpptr->SetMarkerStyle(23);
             else g_tmpptr->SetMarkerStyle(20);
-            g_tmpptr->SetLineColor(kBlue + static_cast<int>(10 * config.fSigma));
+            g_tmpptr->SetLineColor(kOrange + static_cast<int>(10 * config.fSigma));
+            g_tmpptr->SetLineWidth(2);
             mg_LogicPhysics->Add(g_tmpptr);
         }else{
             std::cerr << g_tmpptr << "nullptr reading fNPlotName" << std::endl;
