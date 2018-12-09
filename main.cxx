@@ -15,10 +15,10 @@ int main(){
     configs.emplace_back(ConfigSimulation(true, 100, 2000, false, 0., nullptr));
     configs.emplace_back(ConfigSimulation(false, 100, 50000, true, 0.3, [&](){return gRandom->Gaus(0, 0.1);}));
 
-    Analyzer * MyAnalizer;
-    MyAnalizer = new Analyzer(configs);
+    auto MyAnalizer = Analyzer::Instance(configs);
     MyAnalizer->RunAnalyzer();
     MyAnalizer->JoinResults(cx);
 
+    Analyzer::Destroy();
     return 0;
 }

@@ -155,28 +155,13 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
         PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fNSimulations);
     }
 
-    // create fit, then create arrays of means and sigmas
-//    TF1 *fit_gaus = new TF1("fit_gaus", "gaus", 0., 1.);     //TF1 *fa = new TF1("fa","[0]*x*sin([1]*x)",-3,3);
-//    fit_gaus->SetParLimits(1, 0., 1.);
-
-    double p_value = 0;
     for (int i = 0; i < fNqbits; i++) {
         double currentMean = 0.;
         double currentSigma = 0.;
 
-//        if(TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<2){
-//            currentMean = fit_gaus->GetParameter("Mean");
-//            currentSigma = fit_gaus->GetParameter("Sigma");
-//        } else{
         currentMean = PdfperLenghtCom[i]->GetMean();
         currentSigma = PdfperLenghtCom[i]->GetStdDev();
-//        }
-//        if (Qbit::DEBUG) {
-//            std::cout << "mean: " << fit_gaus->GetParameter("Mean") << "\t sigma: "
-//                      << fit_gaus->GetParameter("Sigma") << std::endl;
-//            std::cout << "grafico PdfperLenghtCom " << i << "\t mean: " << currentMean  << std::endl;
-//            std::cout<<"chi: "<<TMath::Abs(fit_gaus->GetChisquare()/fit_gaus->GetNDF()-1)<<std::endl;
-//        }
+
         NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
         NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
 
@@ -184,26 +169,26 @@ void Simulator::PlotPdfPerLenght(TTree *tree) {
         double p = TMath::Power(currentMean, N); //mean ^N
         probVsNHist->SetPoint(i, N, p);
         double error = N*p/currentMean*currentSigma; //N * x^(N-1) * sigmaX (aka N * x^N / x * sigmaX)
-        probVsNHist->SetPointError(i, 0, error);
+        probVsNHist->SetPointError(i, 0., error);
     }
 
-    // delete histograms
+    // delete temporary histograms
     for(int i=0; i<fNqbits; i++){
         delete PdfperLenghtCom[i];
 //        PdfperLenghtCom[i]->Write();
     }
     delete[] PdfperLenghtCom;
-//    delete fit_gaus;
 
-    NInteceptedVsNqbitHist->SetTitle(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
-    NInteceptedVsNqbitHist->SetName(TString::Format("%s_%s",fNPlotName, fInfos.c_str()));
+    NInteceptedVsNqbitHist->SetNameTitle(TString::Format("%s_%s", fNPlotName, fInfos.c_str()));
     NInteceptedVsNqbitHist->Write(TString::Format("%s_%s",fNPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
-    probVsNHist->SetTitle(fProbabilityTeoPlotName);
-    probVsNHist->Write(fProbabilityPlotName, TObject::kSingleKey | TObject::kOverwrite);
-    probVsNHist_teo->SetTitle(fProbabilityTeoPlotName);
-    probVsNHist_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
     delete NInteceptedVsNqbitHist;
+
+    probVsNHist->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()));
+    probVsNHist->Write(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     delete probVsNHist;
+
+    probVsNHist_teo->SetTitle(fProbabilityTeoPlotName); //Note that teoric curve is not config dependent
+    probVsNHist_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
     delete probVsNHist_teo;
 }
 
@@ -307,10 +292,6 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
 
         cx->cd(2);
         SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
-        TLine line;
-        line.SetLineWidth(3);
-        line.SetLineColor(kRedBlue);
-        line.DrawLine(0,0.25,fNqbits,0.25);
 
         cx->cd(3);
         SetStylesAndDraw(NSameBasisVsNqbit, "Number_of_sent_qbits", "Percentage_of_qbits_with_same_base", kBlue, 2);

@@ -7,21 +7,26 @@
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
 #include <TCanvas.h>
-#include "ConfigSimulation.h"
 #include <TFile.h>
+#include <TMultiGraph.h>
+#include "Simulator.h"
+#include "ConfigSimulation.h"
 #endif
 
 class Analyzer {
-
 public:
-    Analyzer(std::vector<ConfigSimulation> VettInfos);
-    ~Analyzer();
+    static Analyzer* Instance(std::vector<ConfigSimulation> VettInfos);
+    inline static void Destroy(){fgAnalyzer->~Analyzer();};
     void RunAnalyzer();
     void JoinResults(TCanvas *cx);
 
 private:
+    Analyzer(std::vector<ConfigSimulation> VettInfos);
+    Analyzer(const Analyzer&); //avoid automatic copy constructor
+    ~Analyzer();
     std::vector<ConfigSimulation> fVettInfos;
 
+    static Analyzer* fgAnalyzer;
 };
 
 
