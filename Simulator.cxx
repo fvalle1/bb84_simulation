@@ -9,7 +9,7 @@
 Simulator* Simulator::fgSimulator = nullptr;                    // global pointer inizializzato a NULL
 
 Simulator::Simulator()                      // definisco il costruttore di default
-{
+:fConfiguration(){
     fChannels = new Channel *[2];                                 // di default creo 2 canali di default. (se non ci fosse Eve ne basterebbe uno)
 
     fChannels[0] = new Channel();
@@ -245,9 +245,9 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
             return this;
         }
 
-        auto probVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fProbabilityPlotName));
+        auto probVsNHist = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str())));
         auto probVsNHist_teo = dynamic_cast<TF1*>(file.Get(fProbabilityTeoPlotName));
-        auto NVsNHist = dynamic_cast<TGraphErrors*>(file.Get(fNPlotName));
+        auto NVsNHist = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str())));
         auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(fNDistrName));
         if (NVsNHist_distr) NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D *>(file.Get(fUsefulPlotName));
@@ -267,7 +267,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         cx->cd(1);
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
-        probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
+        if(probVsNHist) probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
 
         cx->cd(2);
         SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
@@ -282,7 +282,6 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         cx->cd(4)->SetLogy();
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
-        probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
 
         cx->cd(5);
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
@@ -299,19 +298,20 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
 void Simulator::SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth,
                                  Style_t markerStyle) {
     if (obj) {
+        std::cout<<"Plotting "<<obj->GetName()<<std::endl;
         if(obj->InheritsFrom(TH1::Class())){
             dynamic_cast<TH1*>(obj)->SetLineWidth(linewidth);
             dynamic_cast<TH1*>(obj)->SetLineColor(color);
-            dynamic_cast<TH1*>(obj)->Draw("obj same c");
+            dynamic_cast<TH1*>(obj)->Draw("hist same c");
             dynamic_cast<TH1*>(obj)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TH1*>(obj)->GetYaxis()->SetTitle(ylabel);
         }
         if(obj->InheritsFrom(TF1::Class())){
             dynamic_cast<TF1*>(obj)->SetLineWidth(linewidth);
             dynamic_cast<TF1*>(obj)->SetLineColor(color);
+            dynamic_cast<TF1*>(obj)->Draw("same");
             dynamic_cast<TF1*>(obj)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TF1*>(obj)->GetYaxis()->SetTitle(ylabel);
-            dynamic_cast<TF1*>(obj)->Draw("same c");
         }
         if(obj->InheritsFrom(TGraph::Class())){
             dynamic_cast<TGraph*>(obj)->SetLineWidth(linewidth);
@@ -319,9 +319,9 @@ void Simulator::SetStylesAndDraw(TObject *obj, const char *xLabel, const char *y
             dynamic_cast<TGraph*>(obj)->SetMarkerStyle(markerStyle);
             dynamic_cast<TGraph*>(obj)->SetLineColor(color);
             dynamic_cast<TGraph*>(obj)->SetMarkerColor(color);
+            dynamic_cast<TGraph*>(obj)->Draw("APE same c");
             dynamic_cast<TGraph*>(obj)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TGraph*>(obj)->GetYaxis()->SetTitle(ylabel);
-            dynamic_cast<TGraph*>(obj)->Draw("APE same c");
         }
         if(obj->InheritsFrom(TLine::Class())){
             dynamic_cast<TLine*>(obj)->SetLineWidth(linewidth);

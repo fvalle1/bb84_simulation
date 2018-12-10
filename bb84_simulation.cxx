@@ -26,4 +26,5 @@ void bb84_simulation(){
     auto MyAnalizer = Analyzer::Instance(configs);
     MyAnalizer->RunAnalyzer();
     MyAnalizer->JoinResults(cx);
+    Analyzer::Destroy();
 }
