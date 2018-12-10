@@ -9,6 +9,7 @@
 #include <TCanvas.h>
 #include <TFile.h>
 #include <TMultiGraph.h>
+#include <TLegend.h>
 #include "Simulator.h"
 #include "ConfigSimulation.h"
 #endif

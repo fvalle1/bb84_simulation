@@ -2,7 +2,8 @@
 #define CONFIGSIMULATION_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include <TF1.h>
+#include <functional>
+#include <string>
 #include "Buddy.h"
 #endif
 
@@ -11,18 +12,18 @@ class ConfigSimulation {
 public:
     ConfigSimulation(bool IsLogic = false,
                               int NQbits = 100,
-                              int NSimulations = 10,
+                              int NSimulations = 1000,
                               bool withEve = true,
-                              double sigma = 0,
+                              double sigma = 0.,
                               std::function<double()> PdfNoise = nullptr);
 
-    ConfigSimulation(const ConfigSimulation&);
-    ~ConfigSimulation() = default;
+    ConfigSimulation(const ConfigSimulation&); //creerò dei std::vector<Config>
+    ~ConfigSimulation(){};
 
-    bool fIsLogic;
+    //datamember pubblici in modo da essere subito accessibili da simulator
+    bool fUseErrorCorrection;
     int fNQbits;
     int fNSimulations;
-    bool fWithEve;
     double fSigma;
     std::function<double(void)> fPdfNoise;
     std::string fInfos;

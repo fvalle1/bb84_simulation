@@ -2,7 +2,6 @@
 
 Channel::Channel() : fPdf(nullptr){
     if(Qbit::DEBUG) printf("\nCreating Channel..\n");
-
 }
 
 Channel::~Channel() {

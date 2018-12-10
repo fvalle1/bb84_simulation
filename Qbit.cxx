@@ -2,7 +2,6 @@
 // Created by Filippo Valle on 15/11/2018.
 //
 
-#include <TF1.h>
 #include "Qbit.h"
 
 Qbit::Qbit(bool islogic) :    fIsLogic(islogic) {
@@ -12,9 +11,7 @@ Qbit::Qbit(bool islogic) :    fIsLogic(islogic) {
     else fPhysicsQbits = 1;
 
     fTheta = new double[fPhysicsQbits];
-    for(int qbit = 0; qbit < fPhysicsQbits; qbit++){
-        fTheta[qbit] = 0.;
-    }
+    for(int qbit = 0; qbit < fPhysicsQbits; qbit++) fTheta[qbit] = 0.;
 
     fBase = ZeroOne;
     fState = false;            // il Qbit di default è costruito con polarizzazione orizzontale: base=ZeroOne, polarizzazione=0
@@ -31,7 +28,6 @@ Qbit::Qbit(const Qbit &qbit) : fPhysicsQbits(qbit.fPhysicsQbits),
 }
 
 Qbit &Qbit::operator=(const Qbit &source) {
-    if(Qbit::DEBUG) printf("\nCopying qbit with operator=..\n");
     if(this == &source) return *this;
     this->~Qbit();
     new(this) Qbit(source);
@@ -73,30 +69,30 @@ void Qbit::PrepareTheta() {
         }
     }
     //note: logic qbits have all 3 physical qbits identical after preparation
-    for (int qbit = 0; qbit < fPhysicsQbits; qbit++) { fTheta[qbit] = angleToSet; }
+    for (int qbit = 0; qbit < fPhysicsQbits; qbit++) fTheta[qbit] = angleToSet;
 }
 
 
 void Qbit::MeasureState(basis b) {
     if (Qbit::DEBUG) printf("\nMeasuring qbit\n");
 
-    //Qbit collapse to the basis used for measuring
+    //Qbit collapse to the basis used for measure
     fBase = b;
 
     //Measuring basis PlusMinus is the same as measuring with a ZeroOne filter
-    //the qubit rotated by 45grad anticlockwise
+    //on a qubit rotated by 45grad anticlockwise
     if (b == PlusMinus) for(int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit] += TMath::PiOver4();
-    if (!fIsLogic) {
+    if (!fIsLogic) { //if only have one qbit I measure it
         fState = MeasurePhisicalqbit(0);
-    }else{
+    }else{ //if qbit is logic I measure all qbits and then extimate syndrome
         polarization measures[fPhysicsQbits];
         for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) measures[iqbit] = MeasurePhisicalqbit(iqbit);
-        bool sindrome01 = measures[0] == measures[1];
-        bool sindrome12 = measures[1] == measures[2];
-        if(sindrome01){//0 e 1 are the same --> measure 0 (eg 001)
+        bool syndrome01 = measures[0] == measures[1];
+        bool syndrome12 = measures[1] == measures[2];
+        if(syndrome01){//0 e 1 are the same --> measure 0 (eg 001)
             fState = measures[0];
         }else{//0 e 1 are different
-            if(sindrome12){ //1 e 2 are the same --> measure 1 (011)
+            if(syndrome12){ //1 e 2 are the same --> measure 1 (011)
                 fState = measures[1];
             }else{//both 0 and 1 , 1 and 2 are different --> measure 0 (010)
                 fState = measures[0];
@@ -116,29 +112,26 @@ polarization Qbit::MeasurePhisicalqbit(int q) {
 }
 
 bool Qbit::operator==(const Qbit &qitCompared) const {
-    bool toReturn = (fBase == qitCompared.fBase);          // confronto due qbit: se hanno la stessa base --> guardo anche se hanno l
+    bool toReturn = (fBase == qitCompared.fBase);          // confronto due qbit: se hanno la stessa base --> guardo lo stato
     if(toReturn){
-        if(fState) return qitCompared.fState;                // ??? perché qua come condizione uso fState? non dovrei fare (fState == qitCompared.fState)?
-        else return !qitCompared.fState;
+        if(fState) return qitCompared.fState;               //se primo è vero, sono uguali se secondo è vero
+        else return !qitCompared.fState;                    //se primo è falso sono uguali se secondo è !vero
     }else{
         return false;
     }
 }
 
-bool Qbit::operator!=(const Qbit &qbit) const {
-    return !(qbit == *this);
-}
 
 ostream& operator<<(ostream& os, const Qbit q){
-    os << (q.fIsLogic?"logic":"physic") << " qbit"<< ", state: " <<q.fState << ", basis: "<<q.fBase                    // (q.fIsLogic?"logic":"physic") --> se fIsLogic = 1, è logico, altrimenti è fisico
+    os << (q.fIsLogic?"logic":"physic") << " qbit"<< ", state: " <<q.fState << ", basis: "<<q.fBase                    // (q.fUseErrorCorrection?"logic":"physic") --> se fUseErrorCorrection = 1, è logico, altrimenti è fisico
        <<std::endl;
     for(int qbit = 0; qbit < q.fPhysicsQbits; qbit++) os <<"\ntheta "<< q.fTheta[qbit]<<std::endl<<std::endl<<std::endl;
     return os;
 }
 
 void Qbit::AddNoise(std::function<double()> pdfNoise) {
-    // quso la pdf passata come variabile
-    for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) {fTheta[iqbit]+=pdfNoise();}
+    // la pdf per aggiungere rumore indipendentemente a ogni qbit fisico
+    for (int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit]+=pdfNoise();
 }
 
 

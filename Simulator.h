@@ -6,17 +6,19 @@
 #define BB84_SIMULATION_SIMULATOR_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include "Buddy.h"
-#include "Channel.h"
-#include "Phone.h"
-#include "ConfigSimulation.h"
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TStyle.h>
 #include <TH1D.h>
 #include <TGraphErrors.h>
-#include <stdio.h>
+#include <TF1.h>
 #include <TLine.h>
+#include <TTree.h>
+#include <TBranch.h>
+#include "Buddy.h"
+#include "Channel.h"
+#include "Phone.h"
+#include "ConfigSimulation.h"
 #endif
 
 class Simulator {
@@ -30,6 +32,9 @@ public:
     Simulator* GeneratePlots();
     Simulator* ShowResults(TCanvas *cx);
 
+
+    //Lascio i nomi con cui salvo sui file pubblici per essere facilmente identificati ovunque
+    //static constexpr const char* per avere dei const char* dichiarati e definiti nello stesso posto
     static constexpr const char* fFilename = "bb84_simulation.root";
     static constexpr const char* fNPlotName = "Naltered_vs_Nsent";
     static constexpr const char* fUsefulHistName = "NSameBase_vs_Nsent";
@@ -48,17 +53,14 @@ private:
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
 
-    void PlotPdfPerLenght(TTree *);
-    void PlotNinterceptedVsN(TTree *);
+    void PlotPdfAtFixedNSent(TTree *tree);
+    void PlotNSameBasisVsNSent(TTree *tree);
     void HistNintercepted(TTree*);
 
     Channel** fChannels;
-    int fNqbits;
-    int fNSimulations;
-    bool fUseLogicQbits;
-    std::string fInfos;
+    ConfigSimulation fConfiguration;
 
-    void SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const;
+    void SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const; //Styles on TH1, TGraph...
 
     static Simulator* fgSimulator;                  // global pointer
 };

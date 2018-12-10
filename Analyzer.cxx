@@ -20,6 +20,14 @@ Analyzer* Analyzer::Instance(std::vector<ConfigSimulation> VettInfos) {
 
 Analyzer::Analyzer(std::vector<ConfigSimulation> VettInfos) {
     fVettInfos = std::move(VettInfos);
+
+    gStyle->SetLegendBorderSize(1);
+    gStyle->SetLegendFillColor(0);
+    gStyle->SetLegendFont(42);
+    gStyle->SetLegendTextSize(1.5);
+    gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna informazione
+
+    gRandom->SetSeed(42);
 }
 
 Analyzer::~Analyzer() {
@@ -31,11 +39,10 @@ void Analyzer::RunAnalyzer(){
         auto sim = Simulator::Instance(config);
         sim->RunSimulation()->GeneratePlots();
     }
-
 }
 
 void Analyzer::JoinResults(TCanvas *cx) {
-    TFile* file = new TFile(Simulator::fFilename, "READ");
+    auto file = new TFile(Simulator::fFilename, "READ");
     // show use of logic qbits
     auto mg_LogicPhysics = new TMultiGraph();
     auto mg_ProbabilityVsNsent = new TMultiGraph();
@@ -49,7 +56,7 @@ void Analyzer::JoinResults(TCanvas *cx) {
     for(const auto &config : fVettInfos) {
         g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
         if (g_tmpptr) {
-            if (config.fIsLogic) g_tmpptr->SetMarkerStyle(23);
+            if (config.fUseErrorCorrection) g_tmpptr->SetMarkerStyle(23);
             else g_tmpptr->SetMarkerStyle(20);
             g_tmpptr->SetLineColor(kOrange + static_cast<int>(10 * config.fSigma));
             g_tmpptr->SetLineWidth(2);
@@ -77,8 +84,8 @@ void Analyzer::JoinResults(TCanvas *cx) {
 
     cx->cd();
     cx->Clear();
-    cx->SetCanvasSize(1000, 900);
-    cx->SetWindowSize(1050, 930);
+    cx->SetCanvasSize(800, 900);
+    cx->SetWindowSize(850, 930);
     cx->SetTitle("bb84");
     cx->SetName("bb84");
     cx->Divide(2, 1);
@@ -89,7 +96,8 @@ void Analyzer::JoinResults(TCanvas *cx) {
     line.SetLineWidth(3);
     line.SetLineColor(kRedBlue);
     line.DrawLine(0,0.25,100,0.25);
-    pad->BuildLegend();
+    auto leg = pad->BuildLegend();
+    leg->SetTextColor(kRed);
 
     pad = cx->cd(2);
     pad->SetLogy();

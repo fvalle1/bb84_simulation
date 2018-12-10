@@ -8,33 +8,21 @@
 
 Simulator* Simulator::fgSimulator = nullptr;                    // global pointer inizializzato a NULL
 
-Simulator::Simulator() :                      // definisco il costruttore che verrà chiamato da Instance()
-        fNqbits(100),
-        fUseLogicQbits(false),
-        fNSimulations(1000)
+Simulator::Simulator()                      // definisco il costruttore di default
 {
-    fChannels = new Channel *[2]();                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
+    fChannels = new Channel *[2];                                 // di default creo 2 canali di default. (se non ci fosse Eve ne basterebbe uno)
 
     fChannels[0] = new Channel();
-    fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(false)?
-
-    //gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
-    gRandom->SetSeed(42);                                         // The answer to life the universe and everything
+    fChannels[1] = new Channel();
 }
 
 Simulator::Simulator(ConfigSimulation config) :                      // definisco il costruttore che verrà chiamato da Instance()
-        fNqbits(config.fNQbits),
-        fUseLogicQbits(config.fIsLogic),
-        fNSimulations(config.fNSimulations),
-        fInfos(std::move(config.fInfos))
+        fConfiguration(config)
 {
     fChannels = new Channel*[2];                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
     fChannels[0] = new Channel();
-    fChannels[0]->SetNoisy(config.fPdfNoise);
-    fChannels[1] = new Channel();                                 // qua non faccio SetNoisy(false)?
-
-    //gStyle->SetOptStat(00000000);                                 // di default non mi stampa nessuna imformazione
-    gRandom->SetSeed(42);                                         // The answer to life the universe and everything
+    fChannels[0]->SetNoisy(fConfiguration.fPdfNoise);                     // definisco la pdf del noise
+    fChannels[1] = new Channel();
 }
 
 Simulator::~Simulator() {
@@ -53,33 +41,30 @@ Simulator* Simulator::Instance(ConfigSimulation config) {
     if (!fgSimulator) {
         fgSimulator = new Simulator(config);   // se il puntatore globale non è ancora istanziato: lo faccio puntare ad un oggetto Simulator che creo qua
     }else {
-        fgSimulator->~Simulator();
+        fgSimulator->~Simulator();              //se ho gia global pointer lo distruggo e ne creo uno con la nuova configurazione
         new(fgSimulator) Simulator(config);
     }
     return fgSimulator;
 }
 
 
-Simulator* Simulator::RunSimulation(){                           // quando lancio la simulation creo un telefono e la struttura dove salvare i dati
-    //hists/file
-    printf("\nRunning simulation.. \t --> \t # of simulations: %d\n", fNSimulations);
+Simulator* Simulator::RunSimulation(){                           // quando lancio la simulatione creo un telefono e la struttura dove salvare i dati
+    printf("\nRunning simulation.. \t --> \t # of simulations: %d\n", fConfiguration.fNSimulations);
     auto phone = new Phone();
-    static fStructToSave currentData;
-
+    static CommunicationInfos currentData; //serve al tree per prendere i dati
 
     TFile file(fFilename, "UPDATE");                             // creo un file
     auto tree = new TTree(fTreename, fTreename);                   // creo un tree
-    tree->Branch(fBranchName, &currentData.Ntot, "Ntot/I:SameBasisIntercept:SameBasisNoIntercept"); // &currentData.Not -->  indirizzo del primo elemento della sruttura
+    tree->Branch(fBranchName, &currentData.Ntot, "Ntot/I:SameBasisAltered:SameBasisUntouched"); // &currentData.Not -->  indirizzo del primo elemento della sruttura
     // "Ntot:...." --> concatenation of all the variable names and types separated by ':'
     tree->SetAutoSave(-10000000); //10MB --> This function may be called at the start of a program to change the default value for fAutoSave
 
-    auto qbit = new Qbit(fUseLogicQbits);                                // creo un Qbit
+    auto qbit = new Qbit(fConfiguration.fUseErrorCorrection);                                // creo un Qbit che uso di volta in volta
 
-    for(int simulation = 0; simulation < fNSimulations; simulation++) {   // fNSimulations = numero di simulazioni
-        printf("\rSimulation %u/%u", simulation+1, fNSimulations);
-        for (int N = 1; N <= fNqbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
+    for(int simulation = 0; simulation < fConfiguration.fNSimulations ; simulation++) {   // fNSimulations = numero di simulazioni
+        printf("\rSimulation %u/%u", simulation+1, fConfiguration.fNSimulations );
+        for (int N = 1; N <= fConfiguration.fNQbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
             phone->InitResults(currentData);
-
             for (int i = 1; i <= N; ++i) {                         // ogni qbit della comunicazione viene creato da A, trasmesso, intercettato da E,  ritrasmesso, ricevuto da B, controllato dalla telefonata
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
@@ -91,7 +76,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
             }
             tree->Fill();                                          // riempio il tree con le informazioni
         }
-        file.Flush();                                            // Synchronize a file's in-memory and on-disk states
+        file.Flush();                                            // Salvo i dati della simulazione su file
     }
 
     printf("\nSimulation ended..\n");
@@ -103,139 +88,133 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
     return this;
 }
 
-Simulator* Simulator::
-GeneratePlots() {
+Simulator* Simulator::GeneratePlots() { //Genero i grafici che i servono
     printf("\nGenerating plots..\n");
     TFile file(fFilename, "UPDATE");                           // continuo a scrivere sul file che già esiste
     if (file.IsZombie()) {
         std::cerr << "Error opening file" << std::endl;
         return this;
     }
-    auto tree = dynamic_cast<TTree *>(file.Get(fTreename));     // ??? cosa faccio qua?
-    if (tree && !tree->IsZombie()) {
-        PlotPdfPerLenght(tree);
-        PlotNinterceptedVsN(tree);
-        HistNintercepted(tree);
+    auto tree = dynamic_cast<TTree *>(file.Get(fTreename));     // leggo il tree dal file
+    if (tree && !tree->IsZombie()) { //se ho letto correttamente il tree chiamo i metodi per fare le varie analisi
+        PlotPdfAtFixedNSent(tree);     //fa istogramma a fissato numero di qbit. Utile per stima errori
+        PlotNSameBasisVsNSent(tree); //fa grafico di stessa base vs inviati (tende a 1/4) e probability (1/4)^n
+        HistNintercepted(tree);     //
     }
 
     return this;
 }
 
-void Simulator::PlotPdfPerLenght(TTree *tree) {
-    printf("\nExtimating means and sigmas of N intercepted distributions\n");
+void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
+    printf("\nExtimating means and sigmas of N altered distributions\n");
     TBranch *data = tree->GetBranch(fBranchName);
-    static fStructToSave currentData;
+    static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
-    auto NInteceptedVsNqbitHist = new TGraphErrors(fNqbits);  //number of photons intercepted vs. number of photons measured in the same base
-    auto probVsNHist = new TGraphErrors(fNqbits);
-    auto probVsNHist_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fNqbits, 0);
+    auto NAlteredVsNUsefulHist = new TGraphErrors(fConfiguration.fNSimulations);  //number of photons intercepted vs. number of photons measured in the same base
+    auto probabilityVsN = new TGraphErrors(fConfiguration.fNSimulations);
+    auto probabilityVsN_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fConfiguration.fNQbits, 0);
 
 
     // create histograms
-    auto PdfperLenghtCom = new TH1D *[fNqbits]; //(fPdfperLenghtCom, fPdfperLenghtCom, 30, 0, 1);
+    auto PdfperLenghtCom = new TH1D *[fConfiguration.fNQbits];
     char title[50];
-    for (int i = 0; i < fNqbits; i++) {
+    for (int i = 0; i < fConfiguration.fNQbits; i++) {
         sprintf(title, "PdfperLenghtCom_%d", i);
         PdfperLenghtCom[i] = new TH1D(title, title, 11, -0.05, 1.05);
     }
 
     // Fill histograms
-    auto j=0;
-    double fractionOfIntercepted = 0.;
+    int currentN = 0;
+    double fractionOfAltered = 0.;
     auto entries = tree->GetEntries();
     for (int entry = 0; entry < entries; ++entry) {
-        printf("\r%u/%llu", entry + 1, entries);                 // '\r' mi permette di sovrascrivere la linea stampata ogni volta
+        printf("\r%u/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
-        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-        if (NSamebasis != 0)  fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-        else fractionOfIntercepted = 0.;
-        j = entry % fNqbits;
-        PdfperLenghtCom[j]->Fill(fractionOfIntercepted, 1. / fNSimulations);
+        int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
+        if (NSamebasis != 0)  fractionOfAltered = static_cast<double>(currentData.SameBasisAltered) / NSamebasis;
+        else fractionOfAltered = 0.;
+        currentN = entry % fConfiguration.fNQbits;
+        PdfperLenghtCom[currentN]->Fill(fractionOfAltered, 1. / fConfiguration.fNSimulations);
     }
 
-    for (int i = 0; i < fNqbits; i++) {
-        double currentMean = 0.;
-        double currentSigma = 0.;
+    for (int iqbit = 0; iqbit < fConfiguration.fNQbits; iqbit++) {
+        double currentMean, currentSigma;
 
-        currentMean = PdfperLenghtCom[i]->GetMean();
-        currentSigma = PdfperLenghtCom[i]->GetStdDev();
+        currentMean = PdfperLenghtCom[iqbit]->GetMean();
+        currentSigma = PdfperLenghtCom[iqbit]->GetStdDev();
 
-        NInteceptedVsNqbitHist->SetPoint(i, i+1, currentMean);
-        NInteceptedVsNqbitHist->SetPointError(i, 0, currentSigma);
+        NAlteredVsNUsefulHist->SetPoint(iqbit, iqbit+1, currentMean);
+        NAlteredVsNUsefulHist->SetPointError(iqbit, 0, currentSigma);
 
-        int N = i+1;
+        int N = iqbit+1;
         double p = TMath::Power(currentMean, N); //mean ^N
-        probVsNHist->SetPoint(i, N, p);
+        probabilityVsN->SetPoint(iqbit, N, p);
         double error = N*p/currentMean*currentSigma; //N * x^(N-1) * sigmaX (aka N * x^N / x * sigmaX)
-        probVsNHist->SetPointError(i, 0., error);
+        probabilityVsN->SetPointError(iqbit, 0., error);
     }
 
     // delete temporary histograms
-    for(int i=0; i<fNqbits; i++){
+    for(int i=0; i<fConfiguration.fNQbits; i++){
         delete PdfperLenghtCom[i];
 //        PdfperLenghtCom[i]->Write();
     }
     delete[] PdfperLenghtCom;
 
-    NInteceptedVsNqbitHist->SetNameTitle(TString::Format("%s_%s", fNPlotName, fInfos.c_str()), TString::Format("%s_%s", fNPlotName, fInfos.c_str()));
-    NInteceptedVsNqbitHist->Write(TString::Format("%s_%s",fNPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
-    delete NInteceptedVsNqbitHist;
+    NAlteredVsNUsefulHist->SetNameTitle(TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str()));
+    NAlteredVsNUsefulHist->Write(TString::Format("%s_%s",fNPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
+    delete NAlteredVsNUsefulHist;
 
-    probVsNHist->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()), TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str() ));
-    probVsNHist->Write(TString::Format("%s_%s", fProbabilityPlotName, fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
-    delete probVsNHist;
+    probabilityVsN->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()));
+    probabilityVsN->Write(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
+    delete probabilityVsN;
 
-    probVsNHist_teo->SetTitle(fProbabilityTeoPlotName); //Note that teoric curve is not config dependent
-    probVsNHist_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
-    delete probVsNHist_teo;
+    probabilityVsN_teo->SetTitle(fProbabilityTeoPlotName); //Note that teoric curve is not config dependent
+    probabilityVsN_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
+    delete probabilityVsN_teo;
 }
 
 
-void Simulator::PlotNinterceptedVsN(TTree *tree) {
-    printf("\nPlotting plot of N intercepted vs total N sent\n");
+void Simulator::PlotNSameBasisVsNSent(TTree *tree) {
+    printf("\nPlotting N with same basis vs total N sent\n");
     TBranch *data = tree->GetBranch(fBranchName);
-    static fStructToSave currentData;
+    static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
-    auto NSameBasisVsNqbit = new TH1D(fUsefulHistName, TString::Format("%s_%s", fUsefulHistName, fInfos.c_str()), fNqbits, 0.5, fNqbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
-    auto Useful_distr = new TH1D(fUsefulPlotName, "# useful photons", 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
+    auto NSameBasisVsNsent = new TH1D(fUsefulHistName, TString::Format("%s_%s", fUsefulHistName, fConfiguration.fInfos.c_str()), fConfiguration.fNQbits, 0.5, fConfiguration.fNQbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
+    auto Useful_distr = new TH1D(fUsefulPlotName, fUsefulPlotName, 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
 
-    double fractionOfIntercepted = 0.;
-    double distrNormFactor = 1. / fNSimulations / fNqbits;
+    double distrNormFactor = 1. / fConfiguration.fNSimulations / fConfiguration.fNQbits;
 
     auto entries = tree->GetEntries();
     for (int entry = 0; entry < entries; ++entry) {
         printf("\r%u/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
-        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
-        if (NSamebasis != 0) fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
-        else fractionOfIntercepted = 0.;
-
-        NSameBasisVsNqbit->Fill(currentData.Ntot, static_cast<double>(NSamebasis)/(fNSimulations*currentData.Ntot));
+        int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
+        NSameBasisVsNsent->Fill(currentData.Ntot, static_cast<double>(NSamebasis)/(fConfiguration.fNSimulations*currentData.Ntot));
         Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-        if(Qbit::DEBUG) printf("___ point %d: %2.3f\n", entry, static_cast<double>(NSamebasis) / (fNSimulations*currentData.Ntot));
+        if(Qbit::DEBUG) printf("___ point %d: %2.3f\n", entry, static_cast<double>(NSamebasis) / (fConfiguration.fNSimulations*currentData.Ntot));
     }
 
-    NSameBasisVsNqbit->Write();
-    NSameBasisVsNqbit->SetDirectory(nullptr);
+    NSameBasisVsNsent->Write();
+    NSameBasisVsNsent->SetDirectory(nullptr);
     Useful_distr->Write();
     Useful_distr->SetDirectory(nullptr);
 
     delete Useful_distr;
-    delete NSameBasisVsNqbit;
+    delete NSameBasisVsNsent;
 }
 
 void Simulator::HistNintercepted(TTree *tree) {
     printf("\nPlotting hist of N intercepted\n");
     TBranch *data = tree->GetBranch(fBranchName);
-    static fStructToSave currentData;
+    static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
     double fractionOfIntercepted = 0.;
-    double distrNormFactor = 1. / fNSimulations / fNqbits;
+    double distrNormFactor = 1. / fConfiguration.fNSimulations / fConfiguration.fNQbits;
 
     auto NVsNHist_distr = new TH1D(fNDistrName, fNDistrName, 10, 0, 1);
     auto entries = tree->GetEntries();
@@ -243,9 +222,9 @@ void Simulator::HistNintercepted(TTree *tree) {
         printf("\r%u/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
-        int NSamebasis = currentData.SameBasisIntercept + currentData.SameBasisNoIntercept;
+        int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
         if (NSamebasis != 0)
-            fractionOfIntercepted = static_cast<double>(currentData.SameBasisIntercept) / NSamebasis;
+            fractionOfIntercepted = static_cast<double>(currentData.SameBasisAltered) / NSamebasis;
         else fractionOfIntercepted = 0.;
 
         NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
@@ -295,10 +274,10 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
 
         cx->cd(3);
         SetStylesAndDraw(NSameBasisVsNqbit, "Number_of_sent_qbits", "Percentage_of_qbits_with_same_base", kBlue, 2);
-        TLine line2;
-        line2.SetLineWidth(3);
-        line2.SetLineColor(kRedBlue);
-        line2.DrawLine(0,0.5,fNqbits,0.5);
+        TLine line;
+        line.SetLineWidth(3);
+        line.SetLineColor(kRedBlue);
+        line.DrawLine(0,0.5,fConfiguration.fNQbits,0.5);
 
         cx->cd(4)->SetLogy();
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);

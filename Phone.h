@@ -2,15 +2,13 @@
 #define TPHONE_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include <Riostream.h>
-#include <TTree.h>
 #include "Qbit.h"
 #endif
 
-struct fStructToSave{           //informazioni da tenere
+struct CommunicationInfos{           //informazioni da tenere
     int Ntot;                    
-    int SameBasisIntercept;
-    int SameBasisNoIntercept;
+    int SameBasisAltered;
+    int SameBasisUntouched;
 };
 
 class Phone {
@@ -18,11 +16,11 @@ class Phone {
 public:
     Phone();
     Phone(const Phone& phone);
-    virtual ~Phone();
+    ~Phone();
 
-    void InitResults(fStructToSave &data);                            // per salvare le informazioni nella struttura fStructToSave                            
+    void InitResults(CommunicationInfos &data);                            // per salvare le informazioni nella struttura CommunicationInfos
     void SetNewQbit(Qbit *qbitA);                                     // per assegnare a fQbitA il valore del qbit di ALice, per poter fare il confronto
-    void MakeCallClassicalChannel(Qbit *qbit, fStructToSave &data);   // fa il confronto tra i qbit di Alice e Bob, restituisce un booleano: vero se sono uguali, falso se sono diversi
+    void MakeCallClassicalChannel(Qbit *qbit, CommunicationInfos &data);   // fa il confronto tra i qbit di Alice e Bob, restituisce un booleano: vero se sono uguali, falso se sono diversi
 
 private:
     Qbit* fQbitA;        // qbit di Alice

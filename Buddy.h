@@ -6,19 +6,17 @@
 #define BB84_SIMULATION_BUDDY_H
 
 #if !defined(__CINT__) || defined(__MAKECINT__)
-#include <TRandom3.h>
 #include "Qbit.h"
-#include "TGate.h"
 #endif
 
 
 class Buddy{
 public:
-    static void PrepareQbit(Qbit *qbit);    // sono funzioni statiche --> non dipendono dallo stato di un oggetto della classe
+    static void PrepareQbit(Qbit *qbit);    //Preparo il qbit con base e polarizzazione
     static void ReceiveQbit(Qbit *qbit);    //cambia basis del qbit
-    static void InterceptQbit(Qbit *qbit);
+    static void InterceptQbit(Qbit *qbit);  //intercetto qbit: Eve
 
-    static bool EveIsSleeping;
+    static bool EveIsSleeping;              //decido se eve deve intervenire o meno
 };
 
 
