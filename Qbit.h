@@ -9,6 +9,7 @@
 #include <Riostream.h>
 #include <TMath.h>
 #include <TRandom3.h>
+#include <functional>
 #endif
 
 using std::ostream;
