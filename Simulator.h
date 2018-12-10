@@ -46,6 +46,9 @@ public:
     static constexpr const char* fUsefulPlotName = "useful_distr";
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
 
+    static void SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color = kRedBlue, Width_t linewidth = 4, Style_t markerStyle = 20); //Styles on TH1, TGraph...
+    static void Draw(TObject *obj);
+
 private:
     Simulator();                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     Simulator(ConfigSimulation config);                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
@@ -60,7 +63,6 @@ private:
     Channel** fChannels;
     ConfigSimulation fConfiguration;
 
-    void SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth) const; //Styles on TH1, TGraph...
 
     static Simulator* fgSimulator;                  // global pointer
 };

@@ -65,7 +65,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
         printf("\rSimulation %u/%u", simulation+1, fConfiguration.fNSimulations );
         for (int N = 1; N <= fConfiguration.fNQbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
             phone->InitResults(currentData);
-            for (int i = 1; i <= N; ++i) {                         // ogni qbit della comunicazione viene creato da A, trasmesso, intercettato da E,  ritrasmesso, ricevuto da B, controllato dalla telefonata
+            for (int iqbit = 1; iqbit <= N; ++iqbit) {                         // ogni qbit della comunicazione viene creato da A, trasmesso, intercettato da E,  ritrasmesso, ricevuto da B, controllato dalla telefonata
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
@@ -111,8 +111,8 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
-    auto NAlteredVsNUsefulHist = new TGraphErrors(fConfiguration.fNSimulations);  //number of photons intercepted vs. number of photons measured in the same base
-    auto probabilityVsN = new TGraphErrors(fConfiguration.fNSimulations);
+    auto NAlteredVsNSent = new TGraphErrors(fConfiguration.fNQbits);  //number of photons intercepted vs. number of photons measured in the same base
+    auto probabilityVsN = new TGraphErrors(fConfiguration.fNQbits);
     auto probabilityVsN_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fConfiguration.fNQbits, 0);
 
 
@@ -145,8 +145,8 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
         currentMean = PdfperLenghtCom[iqbit]->GetMean();
         currentSigma = PdfperLenghtCom[iqbit]->GetStdDev();
 
-        NAlteredVsNUsefulHist->SetPoint(iqbit, iqbit+1, currentMean);
-        NAlteredVsNUsefulHist->SetPointError(iqbit, 0, currentSigma);
+        NAlteredVsNSent->SetPoint(iqbit, iqbit+1, currentMean);
+        NAlteredVsNSent->SetPointError(iqbit, 0, currentSigma);
 
         int N = iqbit+1;
         double p = TMath::Power(currentMean, N); //mean ^N
@@ -162,15 +162,15 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     }
     delete[] PdfperLenghtCom;
 
-    NAlteredVsNUsefulHist->SetNameTitle(TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str()));
-    NAlteredVsNUsefulHist->Write(TString::Format("%s_%s",fNPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
-    delete NAlteredVsNUsefulHist;
+    NAlteredVsNSent->SetNameTitle(TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str()));
+    NAlteredVsNSent->Write(TString::Format("%s_%s",fNPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
+    delete NAlteredVsNSent;
 
     probabilityVsN->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()));
     probabilityVsN->Write(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     delete probabilityVsN;
 
-    probabilityVsN_teo->SetTitle(fProbabilityTeoPlotName); //Note that teoric curve is not config dependent
+    probabilityVsN_teo->SetNameTitle(fProbabilityTeoPlotName, fProbabilityTeoPlotName); //Note that teoric curve is not config dependent
     probabilityVsN_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
     delete probabilityVsN_teo;
 }
@@ -287,7 +287,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         cx->cd(5);
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         cx->cd(6);
-        SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow - 3, 2);
+        SetStylesAndDraw(UsefulHist, "Number_of_useful_qbits", "#", kYellow - 3, 2, 0);
     } else {
         std::cerr << "TCanvas is nullptr" << std::endl;
     }
@@ -296,34 +296,37 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
 
 
 
-void Simulator::SetStylesAndDraw(TObject *hist, const char *xLabel, const char *ylabel, Color_t color,
-                                 Width_t linewidth) const {
-    if (hist) {
-        if(hist->InheritsFrom("TH1")){
-            dynamic_cast<TH1*>(hist)->SetLineWidth(linewidth);
-            dynamic_cast<TH1*>(hist)->SetLineColor(color);
-            dynamic_cast<TH1*>(hist)->Draw("hist same c");
-            dynamic_cast<TH1*>(hist)->GetXaxis()->SetTitle(xLabel);
-            dynamic_cast<TH1*>(hist)->GetYaxis()->SetTitle(ylabel);
+void Simulator::SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth,
+                                 Style_t markerStyle) {
+    if (obj) {
+        if(obj->InheritsFrom(TH1::Class())){
+            dynamic_cast<TH1*>(obj)->SetLineWidth(linewidth);
+            dynamic_cast<TH1*>(obj)->SetLineColor(color);
+            dynamic_cast<TH1*>(obj)->Draw("obj same c");
+            dynamic_cast<TH1*>(obj)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TH1*>(obj)->GetYaxis()->SetTitle(ylabel);
         }
-        if(hist->InheritsFrom("TF1")){
-            dynamic_cast<TF1*>(hist)->SetLineWidth(linewidth);
-            dynamic_cast<TF1*>(hist)->SetLineColor(color);
-            dynamic_cast<TF1*>(hist)->GetXaxis()->SetTitle(xLabel);
-            dynamic_cast<TF1*>(hist)->GetYaxis()->SetTitle(ylabel);
-            dynamic_cast<TF1*>(hist)->Draw("same c");
+        if(obj->InheritsFrom(TF1::Class())){
+            dynamic_cast<TF1*>(obj)->SetLineWidth(linewidth);
+            dynamic_cast<TF1*>(obj)->SetLineColor(color);
+            dynamic_cast<TF1*>(obj)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TF1*>(obj)->GetYaxis()->SetTitle(ylabel);
+            dynamic_cast<TF1*>(obj)->Draw("same c");
         }
-        if(hist->InheritsFrom("TGraph")){
-            dynamic_cast<TGraph*>(hist)->SetLineWidth(linewidth);
-            dynamic_cast<TGraph*>(hist)->SetMarkerSize(0.2);
-            dynamic_cast<TGraph*>(hist)->SetMarkerStyle(20);
-            dynamic_cast<TGraph*>(hist)->SetLineColor(color);
-            dynamic_cast<TGraph*>(hist)->SetMarkerColor(color);
-            dynamic_cast<TGraph*>(hist)->GetXaxis()->SetTitle(xLabel);
-            dynamic_cast<TGraph*>(hist)->GetYaxis()->SetTitle(ylabel);
-            dynamic_cast<TGraph*>(hist)->Draw("APE same c");
+        if(obj->InheritsFrom(TGraph::Class())){
+            dynamic_cast<TGraph*>(obj)->SetLineWidth(linewidth);
+            dynamic_cast<TGraph*>(obj)->SetMarkerSize(0.2);
+            dynamic_cast<TGraph*>(obj)->SetMarkerStyle(markerStyle);
+            dynamic_cast<TGraph*>(obj)->SetLineColor(color);
+            dynamic_cast<TGraph*>(obj)->SetMarkerColor(color);
+            dynamic_cast<TGraph*>(obj)->GetXaxis()->SetTitle(xLabel);
+            dynamic_cast<TGraph*>(obj)->GetYaxis()->SetTitle(ylabel);
+            dynamic_cast<TGraph*>(obj)->Draw("APE same c");
+        }
+        if(obj->InheritsFrom(TLine::Class())){
+            dynamic_cast<TLine*>(obj)->SetLineWidth(linewidth);
+            dynamic_cast<TLine*>(obj)->SetLineColor(color);
         }
     }
 }
-
 
