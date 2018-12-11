@@ -22,11 +22,8 @@ void bb84_simulation(){
   //    configs.emplace_back(ConfigSimulation(false, 100, 2000, true, 0.8, [&](){return gRandom->Gaus(0, 0.8);}));
   //    configs.emplace_back(ConfigSimulation(false, 100, 2000, true, 1, [&](){return gRandom->Gaus(0, 1);}));
 
-  configs.emplace_back(ConfigSimulation(false, 100, 2000, false, 0., nullptr));
-  configs.emplace_back(ConfigSimulation(false, 100, 10000, false, 0.1, [&](){return gRandom->Gaus(0, 0.1);}));
-  configs.emplace_back(ConfigSimulation(false, 100, 10000, false, 0.4, [&](){return gRandom->Gaus(0, 0.4);}));
-  configs.emplace_back(ConfigSimulation(false, 100, 10000, false, 2.4, [&](){return gRandom->Gaus(0, 0.8);}));
-
+  configs.emplace_back(ConfigSimulation(true, 100, 2000, false, 0., nullptr));
+  configs.emplace_back(ConfigSimulation(true, 100, 1000, true, 0.1, [&](){return gRandom->Gaus(0, 0.1);}));
 
   auto MyAnalizer = Analyzer::Instance(configs);
   MyAnalizer->RunAnalyzer();

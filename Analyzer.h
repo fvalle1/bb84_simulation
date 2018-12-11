@@ -28,6 +28,9 @@ private:
     std::vector<ConfigSimulation> fVettInfos;
 
     static Analyzer* fgAnalyzer;
+
+    void AddMultiGraphToCanvas(TCanvas *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,TMultiGraph *mg_ProbabilityVsNsent) const;
+    void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;
 };
 
 

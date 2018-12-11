@@ -4,6 +4,7 @@
 
 
 #include "Analyzer.h"
+
 Analyzer* Analyzer::fgAnalyzer = nullptr;
 
 Analyzer* Analyzer::Instance(std::vector<ConfigSimulation> VettInfos) {
@@ -45,40 +46,14 @@ void Analyzer::RunAnalyzer(){
 void Analyzer::JoinResults(TCanvas *cx) {
     auto file = new TFile(Simulator::fFilename, "READ");
     // show use of logic qbits
-    auto mg_LogicPhysics = new TMultiGraph();
+    auto mg_NalteredVsNsent = new TMultiGraph();
     auto mg_ProbabilityVsNsent = new TMultiGraph();
 
-    mg_LogicPhysics->SetTitle("Logic_vs_Physic; Nsent; Naltered");
+    mg_NalteredVsNsent->SetTitle("Logic_vs_Physic; Nsent; Naltered");
     mg_ProbabilityVsNsent->SetTitle("Probability_vs_N; Nsent; Probability error");
 
-    TObject* g_tmpptr;
+    FillMultiGraphs(file, mg_NalteredVsNsent, mg_ProbabilityVsNsent);
 
-    for(const auto &config : fVettInfos) {
-        auto color = kOrange + static_cast<Color_t>(10 * config.fSigma);
-
-        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
-        if (g_tmpptr) {
-            if (config.fUseErrorCorrection) dynamic_cast<TGraphErrors*>(g_tmpptr)->SetMarkerStyle(23);
-            else dynamic_cast<TGraphErrors*>(g_tmpptr)->SetMarkerStyle(20);
-            dynamic_cast<TGraphErrors*>(g_tmpptr)->SetLineColor(color);
-            dynamic_cast<TGraphErrors*>(g_tmpptr)->SetMarkerColor(color);
-            dynamic_cast<TGraphErrors*>(g_tmpptr)->SetLineWidth(2);
-            mg_LogicPhysics->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
-        }else{
-            std::cerr << std::endl << g_tmpptr << "nullptr reading fNPlotName" << std::endl;
-        }
-
-        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fProbabilityPlotName, config.fInfos.c_str())));
-        if(g_tmpptr){
-            Simulator::SetStylesAndDraw(g_tmpptr, "","", color);
-            mg_ProbabilityVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
-        }else{
-            std::cerr << std::endl << g_tmpptr << "nullptr reading fProbabilityPlotName" << std::endl;
-        }
-
-    }
-
-    TLegend* leg;
     cx->cd();
     cx->Clear();
     cx->SetCanvasSize(1000, 600);
@@ -87,11 +62,52 @@ void Analyzer::JoinResults(TCanvas *cx) {
     cx->SetName("bb84");
     cx->Divide(1, 2);
 
+    AddMultiGraphToCanvas(cx, file, mg_NalteredVsNsent, mg_ProbabilityVsNsent);
+
+
+//    delete mg_NalteredVsNsent;
+//    delete mg_ProbabilityVsNsent;
+    file->Close();
+    delete file;
+}
+
+void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const {
+    TObject* g_tmpptr;
+
+    for(const auto &config : fVettInfos) {
+        auto color = kOrange + static_cast<Color_t>(10 * config.fSigma);
+
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
+        if (g_tmpptr) {
+            if (config.fUseErrorCorrection) Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 23);
+            else Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 20);
+            mg_NalteredVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
+        }else{
+            std::__1::cerr << std::__1::endl << g_tmpptr << "nullptr reading fNPlotName" << std::__1::endl;
+        }
+
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(
+                TString::Format("%s_%s", Simulator::fProbabilityPlotName, config.fInfos.c_str())));
+        if(g_tmpptr){
+            if (config.fUseErrorCorrection) Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 23);
+            else Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 20);
+            mg_ProbabilityVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
+        }else{
+            std::__1::cerr << std::__1::endl << g_tmpptr << "nullptr reading fProbabilityPlotName" << std::__1::endl;
+        }
+
+    }
+}
+
+void Analyzer::AddMultiGraphToCanvas(TCanvas *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,
+                                     TMultiGraph *mg_ProbabilityVsNsent) const {
+    TLegend* leg;
+
     auto pad = cx->cd(1);
-    mg_LogicPhysics->Draw("ALP");
+    mg_NalteredVsNsent->Draw("ALP");
     leg = pad->BuildLegend();
     TLine line;
-    Simulator::SetStylesAndDraw(&line, "", "", kRedBlue, 5, 0);
+    Simulator::SetStylesAndDraw(&line, "", "", kRedBlue, 6, 0);
     line.DrawLine(0,0.25,100,0.25);
     leg->SetEntrySeparation(0);
     leg->SetTextSize(0.05);
@@ -99,14 +115,8 @@ void Analyzer::JoinResults(TCanvas *cx) {
     pad = cx->cd(2);
     pad->SetLogy();
     mg_ProbabilityVsNsent->Draw("APL");
-    g_tmpptr = dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName));
-    if(g_tmpptr) Simulator::SetStylesAndDraw(g_tmpptr, "", "", kRed, 1, 0);
-    else std::cerr << std::endl << g_tmpptr << "nullptr reading fProbabilityTeoPlotName" << std::endl;
+    Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName)), "", "", kRed, 4, 0);
     leg = pad->BuildLegend();
     leg->SetEntrySeparation(0);
     leg->SetTextSize(0.05);
-
-    file->Close();
-    delete file;
-
 }

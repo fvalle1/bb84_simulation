@@ -64,8 +64,8 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
 
     auto qbit = new Qbit(fConfiguration.fUseErrorCorrection);                                // creo un Qbit che uso di volta in volta
 
-    for(int simulation = 0; simulation < fConfiguration.fNSimulations ; simulation++) {   // fNSimulations = numero di simulazioni
-        printf("\rSimulation %u/%u", simulation+1, fConfiguration.fNSimulations );
+    for(int experiment = 0; experiment < fConfiguration.fNSimulations ; experiment++) {   // fNSimulations = numero di simulazioni
+        printf("\rExperiment %u/%u", experiment+1, fConfiguration.fNSimulations );
         for (int N = 1; N <= fConfiguration.fNQbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
             phone->InitResults(currentData);
             for (int iqbit = 1; iqbit <= N; ++iqbit) {                         // ogni qbit della comunicazione viene creato da A, trasmesso, intercettato da E,  ritrasmesso, ricevuto da B, controllato dalla telefonata
@@ -301,7 +301,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
 void Simulator::SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color, Width_t linewidth,
                                  Style_t markerStyle) {
     if (obj) {
-        std::cout<<"Plotting "<<obj->GetName()<<std::endl;
+        std::cout<<std::endl<<"Plotting "<<obj->GetName()<<std::endl;
         if(obj->InheritsFrom(TH1::Class())){
             dynamic_cast<TH1*>(obj)->SetLineWidth(linewidth);
             dynamic_cast<TH1*>(obj)->SetLineColor(color);
@@ -317,11 +317,11 @@ void Simulator::SetStylesAndDraw(TObject *obj, const char *xLabel, const char *y
             dynamic_cast<TF1*>(obj)->GetYaxis()->SetTitle(ylabel);
         }
         if(obj->InheritsFrom(TGraph::Class())){
-            dynamic_cast<TGraph*>(obj)->SetLineWidth(linewidth);
-            dynamic_cast<TGraph*>(obj)->SetMarkerSize(0.2);
+            dynamic_cast<TGraph*>(obj)->SetMarkerSize(1.2);
             dynamic_cast<TGraph*>(obj)->SetMarkerStyle(markerStyle);
-            dynamic_cast<TGraph*>(obj)->SetLineColor(color);
             dynamic_cast<TGraph*>(obj)->SetMarkerColor(color);
+            dynamic_cast<TGraph*>(obj)->SetLineWidth(linewidth);
+            dynamic_cast<TGraph*>(obj)->SetLineColor(color);
             dynamic_cast<TGraph*>(obj)->Draw("APE same c");
             dynamic_cast<TGraph*>(obj)->GetXaxis()->SetTitle(xLabel);
             dynamic_cast<TGraph*>(obj)->GetYaxis()->SetTitle(ylabel);
