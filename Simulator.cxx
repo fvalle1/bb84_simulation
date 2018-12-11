@@ -10,6 +10,8 @@ Simulator* Simulator::fgSimulator = nullptr;                    // global pointe
 
 Simulator::Simulator()                      // definisco il costruttore di default
 :fConfiguration(){
+    Buddy::EveIsPresent = fConfiguration.fEveIsPresent;
+
     fChannels = new Channel *[2];                                 // di default creo 2 canali di default. (se non ci fosse Eve ne basterebbe uno)
 
     fChannels[0] = new Channel();
@@ -19,6 +21,7 @@ Simulator::Simulator()                      // definisco il costruttore di defau
 Simulator::Simulator(ConfigSimulation config) :                      // definisco il costruttore che verrà chiamato da Instance()
         fConfiguration(config)
 {
+    Buddy::EveIsPresent = fConfiguration.fEveIsPresent;
     fChannels = new Channel*[2];                                 // di default creo 2 canali. (se non ci fosse Eve ce ne basterebbe uno)
     fChannels[0] = new Channel();
     fChannels[0]->SetNoisy(fConfiguration.fPdfNoise);                     // definisco la pdf del noise

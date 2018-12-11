@@ -4,10 +4,10 @@
 
 #include "Buddy.h"
 
-bool Buddy::EveIsSleeping = false;
+bool Buddy::EveIsPresent = false;
 
 void Buddy::InterceptQbit(Qbit *qbit) {
-    if (!EveIsSleeping) {
+    if (EveIsPresent) {
         if (Qbit::DEBUG) {
             printf("\nIntercepting qbit..\n");
             std::cout << "received qbit: " << *qbit << std::endl;

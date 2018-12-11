@@ -5,10 +5,10 @@ ConfigSimulation::ConfigSimulation(bool IsLogic, int NQbits, int NSimulations, b
         fUseErrorCorrection(IsLogic),
         fNQbits(NQbits),
         fNSimulations(NSimulations),
-        fSigma(sigma){
+        fSigma(sigma),
+        fEveIsPresent(withEve){
     if(sigma>1e-5) fPdfNoise = std::move(PdfNoise);
     else fPdfNoise = nullptr;
-    Buddy::EveIsSleeping = !withEve;
     fInfos = std::string(TString::Format("%s_N%d_sim%d%s%s_%4.2f", IsLogic?"L":"P", NQbits, NSimulations, withEve?"_Eve_":"_", sigma<=1e-5?"quiet":"noisy", sigma));
 }
 
@@ -16,7 +16,8 @@ ConfigSimulation::ConfigSimulation(const ConfigSimulation &source):fUseErrorCorr
                                                                    fNQbits(source.fNQbits),
                                                                    fNSimulations(source.fNSimulations),
                                                                    fSigma(source.fSigma),
-                                                                   fInfos(source.fInfos){
+                                                                   fInfos(source.fInfos),
+                                                                   fEveIsPresent(source.fEveIsPresent){
     if(source.fSigma>1e-5) fPdfNoise = source.fPdfNoise;
     else fPdfNoise = nullptr;
 }

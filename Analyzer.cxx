@@ -33,8 +33,11 @@ Analyzer::~Analyzer() {
 }
 
 void Analyzer::RunAnalyzer(){
+    int current = 0;
+    auto max = fVettInfos.size();
     for(const auto &config : fVettInfos){
         auto sim = Simulator::Instance(config);
+        printf("\n**************\nSimulation %d/%lu", ++current, max);
         sim->RunSimulation()->GeneratePlots();
     }
 }
@@ -100,6 +103,8 @@ void Analyzer::JoinResults(TCanvas *cx) {
     if(g_tmpptr) Simulator::SetStylesAndDraw(g_tmpptr, "", "", kRed, 1, 0);
     else std::cerr << std::endl << g_tmpptr << "nullptr reading fProbabilityTeoPlotName" << std::endl;
     leg = pad->BuildLegend();
+    leg->SetEntrySeparation(0);
+    leg->SetTextSize(0.05);
 
     file->Close();
     delete file;

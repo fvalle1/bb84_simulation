@@ -22,6 +22,7 @@ public:
 
     //datamember pubblici in modo da essere subito accessibili da simulator
     bool fUseErrorCorrection;
+    bool fEveIsPresent;
     int fNQbits;
     int fNSimulations;
     double fSigma;
