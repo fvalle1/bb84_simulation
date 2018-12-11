@@ -29,7 +29,7 @@ int main(){
 
     auto MyAnalizer = Analyzer::Instance(configs);
     MyAnalizer->RunAnalyzer();
-    MyAnalizer->JoinResults(cx);
+    MyAnalizer->JoinResults(cx, 0);
 
     Analyzer::Destroy();
     return 0;

@@ -47,7 +47,6 @@ public:
     static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
 
     static void SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color = kRedBlue, Width_t linewidth = 4, Style_t markerStyle = 20); //Styles on TH1, TGraph...
-    static void Draw(TObject *obj);
 
 private:
     Simulator();                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()

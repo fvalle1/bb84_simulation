@@ -43,7 +43,7 @@ void Analyzer::RunAnalyzer(){
     }
 }
 
-void Analyzer::JoinResults(TCanvas *cx) {
+void Analyzer::JoinResults(TCanvas *cx, int plotFunctionOfErrors) {
     auto file = new TFile(Simulator::fFilename, "READ");
     // show use of logic qbits
     auto mg_NalteredVsNsent = new TMultiGraph();
@@ -60,9 +60,10 @@ void Analyzer::JoinResults(TCanvas *cx) {
     cx->SetWindowSize(1050, 630);
     cx->SetTitle("bb84");
     cx->SetName("bb84");
-    cx->Divide(1, 2);
+    if(plotFunctionOfErrors!=0) cx->Divide(2,1);
 
-    AddMultiGraphToCanvas(cx, file, mg_NalteredVsNsent, mg_ProbabilityVsNsent);
+    AddMultiGraphToCanvas(cx->cd(1), file, mg_NalteredVsNsent, mg_ProbabilityVsNsent);
+    PlotFunctionOfErrors(cx, file, plotFunctionOfErrors);
 
 
 //    delete mg_NalteredVsNsent;
@@ -75,7 +76,10 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
     TObject* g_tmpptr;
 
     for(const auto &config : fVettInfos) {
-        auto color = kOrange + static_cast<Color_t>(10 * config.fSigma);
+        Color_t color;
+        if(config.fEveIsPresent) color = kGreen; //Green(407) and violet(880) should be distant RTypes.h
+        else color = kViolet;
+        color += static_cast<Color_t>(10 * config.fSigma); //color changes due to error factor
 
         g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
         if (g_tmpptr) {
@@ -99,12 +103,14 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
     }
 }
 
-void Analyzer::AddMultiGraphToCanvas(TCanvas *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,
+void Analyzer::AddMultiGraphToCanvas(TVirtualPad *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,
                                      TMultiGraph *mg_ProbabilityVsNsent) const {
-    TLegend* leg;
 
+
+    TLegend* leg;
+    cx->Divide(1, 2);
     auto pad = cx->cd(1);
-    mg_NalteredVsNsent->Draw("ALP");
+    mg_NalteredVsNsent->Draw("APL");
     leg = pad->BuildLegend();
     TLine line;
     Simulator::SetStylesAndDraw(&line, "", "", kRedBlue, 6, 0);
@@ -119,4 +125,58 @@ void Analyzer::AddMultiGraphToCanvas(TCanvas *cx, TFile *file, TMultiGraph *mg_N
     leg = pad->BuildLegend();
     leg->SetEntrySeparation(0);
     leg->SetTextSize(0.05);
+}
+
+void Analyzer::PlotFunctionOfErrors(TCanvas *cx, TFile *file, int Nfixed) {
+    if(Nfixed!=0) {
+        auto leftPad = cx->cd(1);
+        auto rightPad = cx->cd(2);
+        rightPad->Divide(1, 2);
+
+        TVirtualPad *pad;
+        pad = leftPad->cd(1);
+        TLine line;
+        Simulator::SetStylesAndDraw(&line, "", "", kBlue, 5);
+        line.DrawLine(Nfixed, -0.1, Nfixed, 0.6);
+
+        pad = rightPad->cd(1);
+
+
+        TGraphErrors* NalteredVsError[4]; //[0] P [1] L [2] P_Eve [3]L_Eve
+        for (auto &graph : NalteredVsError) {
+            graph = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+            graph->SetNameTitle("NAlteredVsError_Physical_qbits");
+        }
+        int pointCntr[4] = {0};
+        TGraph* g_tmpptr = nullptr;
+        double x , y;
+
+        for(const auto &config : fVettInfos) {
+            g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
+            if (g_tmpptr) {
+                g_tmpptr->GetPoint(Nfixed - 1, x, y); //Get value of NAlteredVsN at N = Nfixed
+                int iGraph = config.fUseErrorCorrection?1:0;
+                if(config.fEveIsPresent) iGraph+=2;
+                NalteredVsError[iGraph]->SetPoint(pointCntr[iGraph], config.fSigma, y);
+                NalteredVsError[iGraph]->SetPointError(pointCntr[iGraph]++, 0, dynamic_cast<TGraphErrors *>(g_tmpptr)->GetEY()[Nfixed-1]);
+            }
+        }
+
+        Simulator::SetStylesAndDraw(NalteredVsError[0], "", "", kCyan - 2, 1, 24);
+        Simulator::SetStylesAndDraw(NalteredVsError[1], "", "", kViolet, 1, 32);
+        Simulator::SetStylesAndDraw(NalteredVsError[2], "", "", kCyan - 9, 1, 24);
+        Simulator::SetStylesAndDraw(NalteredVsError[3], "", "", kViolet + 4, 1, 32);
+
+        auto mg_NAlteredVsNoise = new TMultiGraph();
+        mg_NAlteredVsNoise->SetTitle("Altered_vs_Noise; #sigma noise; Naltered");
+        for (int i = 0; i < 4 ; i++) {
+            NalteredVsError[i]->Set(pointCntr[i]);
+            mg_NAlteredVsNoise->Add(NalteredVsError[i]);
+        }
+
+        mg_NAlteredVsNoise->Draw("APL");
+        auto leg = pad->BuildLegend();
+        leg->SetEntrySeparation(0);
+        leg->SetTextSize(0.05);
+    }
 }

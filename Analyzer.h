@@ -19,7 +19,7 @@ public:
     static Analyzer* Instance(std::vector<ConfigSimulation> VettInfos);
     inline static void Destroy(){fgAnalyzer->~Analyzer();};
     void RunAnalyzer();
-    void JoinResults(TCanvas *cx);
+    void JoinResults(TCanvas *cx, int plotFunctionOfErrors = 0);
 
 private:
     Analyzer(std::vector<ConfigSimulation> VettInfos);
@@ -29,8 +29,11 @@ private:
 
     static Analyzer* fgAnalyzer;
 
-    void AddMultiGraphToCanvas(TCanvas *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,TMultiGraph *mg_ProbabilityVsNsent) const;
+    void AddMultiGraphToCanvas(TVirtualPad *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,
+                               TMultiGraph *mg_ProbabilityVsNsent) const;
     void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;
+
+    void PlotFunctionOfErrors(TCanvas *cx, TFile *file, int Nfixed);
 };
 
 
