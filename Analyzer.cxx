@@ -87,7 +87,7 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
             else Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 20);
             mg_NalteredVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
         }else{
-            std::__1::cerr << std::__1::endl << g_tmpptr << "nullptr reading fNPlotName" << std::__1::endl;
+            std::cerr << std::endl << g_tmpptr << "nullptr reading fNPlotName" << std::endl;
         }
 
         g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(
@@ -97,7 +97,7 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
             else Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 20);
             mg_ProbabilityVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
         }else{
-            std::__1::cerr << std::__1::endl << g_tmpptr << "nullptr reading fProbabilityPlotName" << std::__1::endl;
+            std::cerr << std::endl << g_tmpptr << "nullptr reading fProbabilityPlotName" << std::endl;
         }
 
     }
