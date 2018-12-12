@@ -143,10 +143,14 @@ void Analyzer::PlotFunctionOfErrors(TCanvas *cx, TFile *file, int Nfixed) {
 
 
         TGraphErrors* NalteredVsError[4]; //[0] P [1] L [2] P_Eve [3]L_Eve
-        for (auto &graph : NalteredVsError) {
-            graph = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-            graph->SetNameTitle("NAlteredVsError_Physical_qbits");
-        }
+        NalteredVsError[0] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+        NalteredVsError[0] -> SetNameTitle("NAlteredVsError_Physical_qbits");
+        NalteredVsError[1] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+        NalteredVsError[1] -> SetNameTitle("NAlteredVsError_Logical_qbits");
+        NalteredVsError[2] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+        NalteredVsError[2] -> SetNameTitle("NAlteredVsError_Physical_qbits_Eve");
+        NalteredVsError[3] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+        NalteredVsError[3] -> SetNameTitle("NAlteredVsError_Logical_qbits_Eve");
         int pointCntr[4] = {0};
         TGraph* g_tmpptr = nullptr;
         double x , y;

@@ -26,7 +26,7 @@ linkcolor=black
 }
 
 \lstdefinestyle{myRoot}{
-backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+backgroundcolor=\color{white},
 basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
 breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
 breaklines=true,                 % sets automatic line breaking
@@ -51,12 +51,12 @@ tabsize=2,                     % sets default tabsize to 2 spaces
 
 \pagestyle{fancy}
 \lhead{}
-\cfoot{Filippo Valle}
+\cfoot{Francesco Bonacina - Filippo Valle}
 \rfoot{\thepage}
 \renewcommand{\headrulewidth}{0.3pt}% Remove header rule
 \renewcommand{\footrulewidth}{0.3pt}
 
-\author{Francesco Bonacina  Filippo Valle}
+\author{Francesco Bonacina e Filippo Valle}
 \date{\today}
 \title{Relazione tans: Protocollo BB84}
 
@@ -67,9 +67,39 @@ tabsize=2,                     % sets default tabsize to 2 spaces
 \thispagestyle{empty}
 \tableofcontents
 
+\clearpage
 \section{Introduzione}
+\subsection{BB84, protocollo quantistico di distribuzione delle chiavi per crittografia}
+Il BB84 è stato il primo metodo di crittografia quantistica mai inventato ed è utilizzabile come metodo per comunicare in modo privato una chiave segreta tra due utenti per poi utilizzare un protocollo del tipo "cifrario di Vernam" per la crittazione. È stato sviluppato da Charles H. Bennett e Gilles Brassard nel 1984.
+\paragraph{Descrizione}
+Alice e Bob vogliono riuscire a stabilire una comunicazione sicura per scambiarsi una chiave segreta. La chiave segreta sarà costituita da una stringa di qubit negli stati $|0\rangle, |1\rangle, |-\rangle, |+\rangle$, che fisicamente saranno fotoni polarizzati ad angoli rispettivamente di 0°, 90°, -45° e 45°.
+Prima dello scambio della chiave segreta Alice e Bob adotteranno il protocollo BB84 per capire se la loro comunicazione è intercettata da qualcuno (Eve). Il protocollo funziona in questo modo:
+\begin{itemize}
+    \item Alice ogni volta che preparerà un fotone sceglierà in modo casuale (con probabilità 0.5) se utilizzare il filtro polarizzatore (\textit{base}) $\{0,1\}$ o quello $\{+,-\}$, inoltre, sempre con probabilità 0.5, codificherà il qbit nello stato 0 o 1 associato a quella base. In questo modo potrà codificare tutti e 4 gli stati possibili. Alice terrà traccia delle basi usate e degli stati preparati.
+    \item Il fotone polarizzato verrà trasmesso nel primo canale.
+    \item L'eventuale intercettatore Eve riceverà i fotoni di A., cercherà di capire in che stato si trovano misurandoli e poi preparerà nuovi fotoni da trasmettere a B., per cercare di non farsi scoprire. Eve sa che le basi utilizzate nella codifica sono $\{0,1\}$ e $\{-,+\}$. Quindi ne sceglierà una di queste in modo casuale, farà collassare il qbit intercettato misurandolo e poi trasmetterà a B. un fotone corrispondente alla misura ottenuta.
+    \item Il fotone preparato da E. verrà trasmesso a B. in un secondo canale.
+    \item Bob a sua volta misurerà i fotoni che riceve utilizzando in modo casuale le basi $\{0,1\}$ e $\{-,+\}$. Anche Bob terrà traccia delle basi usate e degli stati misurati.
+    \item Queste operazioni verranno ripetute per tutti gli N fotoni preparati da Alice. Alla fine della trasmissione, Bob comunicherà pubblicamente di aver ricevuto N fotoni e, a quel punto, Alice renderà nota la sequenza degli stati trasmessi e delle basi utilizzate per prepararli. Bob scarterà quindi i fotoni che ha misurato in una base diversa da quella con cui erano stati codificati (il 50\% statisticamente) e vedrà se gli altri qbit si trovano nello stesso stato preparato da Alice. Se alcuni di questi risulteranno alterati (il 50\% dei rimasti, statisticamente), significherà che c'è stata una misura non prevista durante la trasmissione.
+\end{itemize}
 
-\section{Compile and run}
+\begin{figure}[htbp!]
+\centering
+\includegraphics[width=14cm]{comunicazione_con_Eve2.png}
+\end{figure}
+
+\subsection{Trasmissione con rumore}
+Nel nostro progetto abbiamo introdotto la possibilità di simulare canali rumorosi. I fotoni trasmessi da Alice a Eve e da Eve a Bob subiscono una variazione di fase di un angolo $\theta$, variabile aleatoria che segue una distribuzione $N(0,\sigma^2)$
+Quindi i qbit, durante la comunicazione, possono risultare alterati oltre che dall'eventuale Eve anche dall'effetto del rumore.
+
+\subsection{Utilizzo di qbit logici}
+Per limitare l'effetto del rumore utilizziamo un codice a qbit logici, ripetizione di 3 qbit fisici.
+Per qbit logico si intende la ripetizione di più qbit fisici identici: nel nostro caso, ad esempio, Alice volendo trasmettere lo stato $|0\rangle$, trasmetterà in realtà lo stato $|000\rangle$. Quindi $|0\rangle_L = |0\rangle_P|0\rangle_P|0\rangle_P$.
+Tutti gli attori della comunicazione sono informati dell'utilizzo di qbit logici (anche Eve), quindi sanno che devono aspettarsi "pacchetti" di qbit a tre a tre identici. In questo modo se il ricevitore misurerà stati non identici all'interno della singola tripletta, applicherà una correzione considerando come corretto lo stato dei due qbit uguali (es: $|010\rangle$ viene corretto in $|000\rangle$).
+Poichè il rumore agisce indipendentemente su ogni qbit, l'utilizzo di qbit logici risulta vantaggioso, infatti la probabilità che vengano alterati almeno due qbit fisici su tre che costituiscono il qbit logico è minore della probabilità che venga alterato il singolo qbit nella comunicazione semplice.
+
+\section{Simulazione}
+\subsection{CMake}
 
 \begin{lstlisting}[language=bash, style=myRoot]
 $: root -l compile.C
@@ -98,8 +128,6 @@ root [4] cx = new TCanvas()
 root [5] sim->ShowResults(cx)
 \end{lstlisting}
 
-
-\subsection{CMake}
 \begin{lstlisting}[language=bash]
 $: mkdir build && cd build
 $: cmake ..
@@ -107,7 +135,95 @@ $: make bb84
 $: ./bb84
 \end{lstlisting}
 
-\section{Results}
+\subsection{Struttura del codice}
+\paragraph{Qbit}
+Ha come datamember una base che può essere \textit{ZeroOne} o \textit{PlusMinus}, una polarizzazione che può essere \textit{up} o \textit{down}.
+I metodi sono automaticamente implementati nel caso di qbit fisici e logici, come definito da \textit{fIsLogic}.
+Qbit ha al suo interno i metodi per essere preparato, misurato e sfasato secondo una funzione nota.
+
+\paragraph{Channel}
+Serve ad aggiungere, su richiesta, del rumore secondo una funzione data
+
+\paragraph{Phone}
+Serve a confrontare i qbit all'invio all'interno della funzione funzione:
+\begin{lstlisting}[style=myRoot, language=C++]
+void MakeCallClassicalChannel(Qbit *qbit, CommunicationInfos &data);
+\end{lstlisting}
+Dove CommunicationInfos è:
+\begin{lstlisting}[language=C++, style=myRoot]
+struct CommunicationInfos{           //informazioni da tenere
+    int Ntot;                    
+    int SameBasisAltered;
+    int SameBasisUntouched;
+};
+\end{lstlisting}
+
+\begin{itemize}
+\item \textbf{Ntot} è il numero di qbit inviati per \textbf{simulazione}
+\item \textbf{SamebasisAltered} è il numero di qbit \textbf{mutati} durante la trasmissione
+\item \textbf{SameBasisUntouched} è il numero di qbit che NON sono variati durante la trasmissione
+\item \textbf{SamebasisAltered + SameBasisUntouched} è il numero di qbit in cui Alice e Bob hanno utilizzato la stessa base
+\end{itemize}
+
+\paragraph{Buddy}
+Implementa staticamente funzioni per preparare, intercettare e ricevere un qbit
+
+\paragraph{ConfigSimulator}
+Ha come datamember i diversi parametri con cui si può configurare una simulazione
+
+\paragraph{Simulator}
+Simulator si occupa di eseguire una simulazione dati i parametri in un ConfigSimulator e genera i plot che verranno salvati su file.
+
+\paragraph{Analyzer}
+Analyzer chiama Simulator un numero variabile di volte e raggruppa tutti i plot in un'unica finestra.
+
+\subsection{Utilizzo del codice}
+Si noti che sia Simulator, sia Analyzer possono essere chiamati a simulazione già avvenuta, solo per mostrare i risultati.
+
+\begin{lstlisting}[language=bash, style=myRoot]
+root [0] 
+Processing compile.C...
+root [1] sim = Simulator::Instance()
+root [2] cx = new TCanvas()
+root [3] sim->ShowResults(cx)
+\end{lstlisting}
+
+\clearpage
+\section{Risultati}
+\subsection{Confronto trasmissione con qbit fisici e logici in presenza di rumore, senza Eve, per diverse lunghezze della comunicazione}
+
+In figura ~\ref{fig:alteredvsnoise} Si mostrano i risultati ttenuti simulando fino a 100 qbit, con 1000 esperimenti senza Eve.
+Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
+
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.8\linewidth]{alterednoise.pdf}
+\caption{Simulazioni senza Eve al variare del rumore}
+\label{fig:alteredvsnoise}
+\end{figure}
+
+Si nota che nel caso di qbit logici la frazione di comunicazioni alterate è minore rispetto al caso di qbit fisici.
+Senza rumore ($\sigma=0$) l'utilizzo di qbit logici è inutile, in quanto già con qbit fisici il numero di comunicazioni alterate è nullo.
+Asintoticamente invece gli andamenti tendono asintoticamente a $\frac{1}{2}$, ovvero vengono alterati tutti i qbit utili alla comunicazione.
+
+\subsection{Trasmissione con qbit logici, con Eve, variando il rumore, per diverse lunghezze della comunicazione}
+
+In figura ~\ref{fig:alteredvsnoiseeve} Si mostrano i risultati ttenuti simulando fino a 100 qbit, con 1000 esperimenti senza Eve.
+Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
+
+\begin{figure}[htb!]
+\centering
+\includegraphics[width=0.8\linewidth]{alterednoiseeve.pdf}
+\caption{Simulazioni con Eve al variare del rumore}
+\label{fig:alteredvsnoiseeve}
+\end{figure}
+
+Si nota che nel caso di qbit logici la frazione di comunicazioni alterate è minore rispetto al caso di qbit fisici.
+Come nel caso senza Eve, a $\sigma=0$ l'utilizzo di qbit logici è inutile e asintoticamente gli andamenti tendono asintoticamente a $\frac{1}{2}$.
+
+Rispetto al caso precedente, senza Eve, le curve vengono traslate di $\frac{1}{4}$ verso l'alto, infatti l'eventuale intercettore altera in media il $25\%$ delle comunicazione.
+
+\subsection{Trasmissione con qbit logici, (con o senza Eve), variando il rumore, fissata la lunghezza della comunicazione. $\to$ vediamo come cambia la sigma del numero di misure nella stessa base (grafico cd(6))}
 
 
 
