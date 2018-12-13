@@ -9,7 +9,7 @@
 Simulator* Simulator::fgSimulator = nullptr;                    // global pointer inizializzato a NULL
 
 Simulator::Simulator()                      // definisco il costruttore di default
-:fConfiguration(){
+        :fConfiguration(){
     Buddy::EveIsPresent = fConfiguration.fEveIsPresent;
 
     fChannels = new Channel *[2];                                 // di default creo 2 canali di default. (se non ci fosse Eve ne basterebbe uno)
@@ -196,9 +196,9 @@ void Simulator::PlotNSameBasisVsNSent(TTree *tree) {
         tree->GetEvent(entry);
 
         int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
-        NSameBasisVsNsent->Fill(currentData.Ntot, static_cast<double>(NSamebasis)/(fConfiguration.fNSimulations*currentData.Ntot));
-        Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
-        if(Qbit::DEBUG) printf("___ point %d: %2.3f\n", entry, static_cast<double>(NSamebasis) / (fConfiguration.fNSimulations*currentData.Ntot));
+        NSameBasisVsNsent->Fill(currentData.Ntot, static_cast<double>(NSamebasis) /(fConfiguration.fNSimulations * currentData.Ntot));
+
+        if (currentData.Ntot == fConfiguration.fNQbits / 2) Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
     }
 
     NSameBasisVsNsent->Write();
@@ -225,12 +225,14 @@ void Simulator::HistNintercepted(TTree *tree) {
         printf("\r%u/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
-        int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
-        if (NSamebasis != 0)
-            fractionOfIntercepted = static_cast<double>(currentData.SameBasisAltered) / NSamebasis;
-        else fractionOfIntercepted = 0.;
+        if (currentData.Ntot == fConfiguration.fNQbits / 2) {
+            int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
+            if (NSamebasis != 0)
+                fractionOfIntercepted = static_cast<double>(currentData.SameBasisAltered) / NSamebasis;
+            else fractionOfIntercepted = 0.;
 
-        NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+            NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+        }
     }
 
     NVsNHist_distr->Write();
@@ -274,13 +276,18 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
 
         cx->cd(2);
         SetStylesAndDraw(NVsNHist, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
+        TLine line2;
+        Simulator::SetStylesAndDraw(&line2, "", "", kRed, 4);
+        line2.DrawLine(fConfiguration.fNQbits/2., -0.1, fConfiguration.fNQbits/2., 0.6);
 
         cx->cd(3);
         SetStylesAndDraw(NSameBasisVsNqbit, "Number_of_sent_qbits", "Percentage_of_qbits_with_same_base", kBlue, 2);
-        TLine line;
-        line.SetLineWidth(3);
-        line.SetLineColor(kRedBlue);
-        line.DrawLine(0,0.5,fConfiguration.fNQbits,0.5);
+        TLine line3;
+        Simulator::SetStylesAndDraw(&line3, "", "", kRedBlue, 4);
+        line3.DrawLine(fConfiguration.fNQbits/2., 0.495, fConfiguration.fNQbits/2, 0.505);
+        TLine line05;
+        Simulator::SetStylesAndDraw(&line05, "", "", kRed, 4);
+        line05.DrawLine(0, 0.5, fConfiguration.fNQbits,0.5);
 
         cx->cd(4)->SetLogy();
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
