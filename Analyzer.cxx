@@ -279,13 +279,13 @@ void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) {
 
 void Analyzer::InitMultiGraph(TGraphErrors **NalteredVsError, const char *name) const {
     NalteredVsError[0] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-    NalteredVsError[0] -> SetNameTitle(TString::Format("%s_Physical_qbits", name));
+    NalteredVsError[0] -> SetNameTitle(TString::Format("%s_Physical_qbits", name), TString::Format("%s_Physical_qbits", name));
     NalteredVsError[1] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-    NalteredVsError[1] -> SetNameTitle(TString::Format("%s_Logical_qbits", name));
+    NalteredVsError[1] -> SetNameTitle(TString::Format("%s_Logical_qbits", name), TString::Format("%s_Logical_qbits", name));
     NalteredVsError[2] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-    NalteredVsError[2] -> SetNameTitle(TString::Format("%s_Physical_qbits_Eve", name));
+    NalteredVsError[2] -> SetNameTitle(TString::Format("%s_Physical_qbits_Eve", name), TString::Format("%s_Physical_qbits_Eve", name));
     NalteredVsError[3] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-    NalteredVsError[3] -> SetNameTitle(TString::Format("%s_Logical_qbits_Eve", name));
+    NalteredVsError[3] -> SetNameTitle(TString::Format("%s_Logical_qbits_Eve", name), TString::Format("%s_Logical_qbits_Eve", name));
 }
 
 void Analyzer::SetStyleMultiGraph(TGraphErrors *const *mg) const {
