@@ -1,6 +1,6 @@
 #include "ConfigSimulation.h"
 
-ConfigSimulation::ConfigSimulation(bool IsLogic, int NQbits, int NSimulations, bool withEve, double sigma,
+ConfigSimulation::ConfigSimulation(bool IsLogic, uint32_t NQbits, uint32_t NSimulations, bool withEve, double sigma,
                                    std::function<double()> PdfNoise) :
         fUseErrorCorrection(IsLogic),
         fNQbits(NQbits),

@@ -56,3 +56,5 @@ relazione/template\.synctex\.gz
 
 relazione/report\.synctex\.gz
 CMakeLists.txt
+
+*.cxx_tmp_8626

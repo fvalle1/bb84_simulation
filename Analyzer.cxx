@@ -3,6 +3,7 @@
 //
 
 
+#include <THStack.h>
 #include "Analyzer.h"
 
 Analyzer* Analyzer::fgAnalyzer = nullptr;
@@ -43,7 +44,7 @@ void Analyzer::RunAnalyzer(){
     }
 }
 
-void Analyzer::JoinResults(TCanvas *cx, int plotFunctionOfErrors) {
+void Analyzer::JoinResults(TCanvas *cx, uint32_t fixedN) {
     auto file = new TFile(Simulator::fFilename, "READ");
     // show use of logic qbits
     auto mg_NalteredVsNsent = new TMultiGraph();
@@ -60,16 +61,45 @@ void Analyzer::JoinResults(TCanvas *cx, int plotFunctionOfErrors) {
     cx->SetWindowSize(1050, 630);
     cx->SetTitle("bb84");
     cx->SetName("bb84");
-    if(plotFunctionOfErrors!=0) cx->Divide(2,1);
+    cx->Divide(2,3); //separe leftRight
 
-    AddMultiGraphToCanvas(cx->cd(1), file, mg_NalteredVsNsent, mg_ProbabilityVsNsent);
-    PlotFunctionOfErrors(cx, file, plotFunctionOfErrors);
+    AlteredVsSent(cx->cd(1), mg_NalteredVsNsent, fixedN);
+    ProbabilityVsSent(cx->cd(3), file, mg_ProbabilityVsNsent);
+    PlotFunctionOfErrors(cx->cd(2), file, fixedN);
+    PlotSlopeVsNoise(cx->cd(4), file);
+    PlotNalteredDistributions(cx->cd(5), file);
+    PlotFunctionOfAltered(cx->cd(6), file);
 
 
 //    delete mg_NalteredVsNsent;
 //    delete mg_ProbabilityVsNsent;
     file->Close();
     delete file;
+}
+
+void Analyzer::AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const {
+    auto pad = cx->cd();
+    mg_NalteredVsNsent->Draw("APL");
+    auto leg = pad->BuildLegend();
+    TLine line25;
+    Simulator::SetStylesAndDraw(&line25, "", "", kRedBlue, 6, 0);
+    line25.DrawLine(0,0.25,100,0.25);
+    leg->SetEntrySeparation(0);
+    leg->SetTextSize(0.05);
+
+    TLine line;
+    Simulator::SetStylesAndDraw(&line, "", "", kBlue, 4);
+    line.DrawLine(fixed, -0.1, fixed, 0.6);
+}
+
+void Analyzer::ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const {
+    auto pad = cx->cd();
+    pad->SetLogy();
+    mg_ProbabilityVsNsent->Draw("APL");
+    Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName)), "", "", kRed, 4, 0);
+    auto leg = pad->BuildLegend();
+    leg->SetEntrySeparation(0);
+    leg->SetTextSize(0.05);
 }
 
 void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const {
@@ -103,84 +133,164 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
     }
 }
 
-void Analyzer::AddMultiGraphToCanvas(TVirtualPad *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,
-                                     TMultiGraph *mg_ProbabilityVsNsent) const {
+
+void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) {
+
+    auto pad = cx->cd();
+    TGraphErrors* NalteredVsError[4]; //[0] P [1] L [2] P_Eve [3]L_Eve
+    InitMultiGraph(NalteredVsError, "alteredError");
+    int pointCntr[4] = {0};
+    TGraph* g_tmpptr = nullptr;
+    double x , y;
+
+    for(const auto &config : fVettInfos) {
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
+        if (g_tmpptr) {
+            g_tmpptr->GetPoint(Nfixed - 1, x, y); //Get value of NAlteredVsN at N = Nfixed
+            int iGraph = config.fUseErrorCorrection?1:0;
+            if(config.fEveIsPresent) iGraph+=2;
+            NalteredVsError[iGraph]->SetPoint(pointCntr[iGraph], config.fSigma, y);
+            NalteredVsError[iGraph]->SetPointError(pointCntr[iGraph]++, 0, dynamic_cast<TGraphErrors *>(g_tmpptr)->GetEY()[Nfixed-1]);
+        }
+    }
 
 
-    TLegend* leg;
-    cx->Divide(1, 2);
-    auto pad = cx->cd(1);
-    mg_NalteredVsNsent->Draw("APL");
-    leg = pad->BuildLegend();
-    TLine line;
-    Simulator::SetStylesAndDraw(&line, "", "", kRedBlue, 6, 0);
-    line.DrawLine(0,0.25,100,0.25);
-    leg->SetEntrySeparation(0);
-    leg->SetTextSize(0.05);
+    SetStyleMultiGraph(NalteredVsError);
 
-    pad = cx->cd(2);
-    pad->SetLogy();
-    mg_ProbabilityVsNsent->Draw("APL");
-    Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName)), "", "", kRed, 4, 0);
-    leg = pad->BuildLegend();
+    auto mg_NAlteredVsNoise = new TMultiGraph();
+    mg_NAlteredVsNoise->SetTitle("Altered_vs_Noise; #sigma noise; Naltered");
+    for (int i = 0; i < 4 ; i++) {
+        NalteredVsError[i]->Set(pointCntr[i]);
+        mg_NAlteredVsNoise->Add(NalteredVsError[i]);
+    }
+
+    mg_NAlteredVsNoise->Draw("APL");
+    auto leg = pad->BuildLegend();
     leg->SetEntrySeparation(0);
     leg->SetTextSize(0.05);
 }
 
-void Analyzer::PlotFunctionOfErrors(TCanvas *cx, TFile *file, int Nfixed) {
-    if(Nfixed!=0) {
-        auto leftPad = cx->cd(1);
-        auto rightPad = cx->cd(2);
-        rightPad->Divide(1, 2);
 
-        TVirtualPad *pad;
-        pad = leftPad->cd(1);
-        TLine line;
-        Simulator::SetStylesAndDraw(&line, "", "", kBlue, 5);
-        line.DrawLine(Nfixed, -0.1, Nfixed, 0.6);
+void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) {
+    auto pad = cx->cd();
 
-        pad = rightPad->cd(1);
+    TObject* g_tmpptr = nullptr;
 
 
-        TGraphErrors* NalteredVsError[4]; //[0] P [1] L [2] P_Eve [3]L_Eve
-        NalteredVsError[0] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-        NalteredVsError[0] -> SetNameTitle("NAlteredVsError_Physical_qbits");
-        NalteredVsError[1] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-        NalteredVsError[1] -> SetNameTitle("NAlteredVsError_Logical_qbits");
-        NalteredVsError[2] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-        NalteredVsError[2] -> SetNameTitle("NAlteredVsError_Physical_qbits_Eve");
-        NalteredVsError[3] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
-        NalteredVsError[3] -> SetNameTitle("NAlteredVsError_Logical_qbits_Eve");
-        int pointCntr[4] = {0};
-        TGraph* g_tmpptr = nullptr;
-        double x , y;
+    TGraphErrors* devstVsNoise[4]; //[0] P [1] L [2] P_Eve [3]L_Eve
+    InitMultiGraph(devstVsNoise, "devst_noise");
+    int devstVsNoiseCntr[4] = {0};
 
-        for(const auto &config : fVettInfos) {
-            g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
-            if (g_tmpptr) {
-                g_tmpptr->GetPoint(Nfixed - 1, x, y); //Get value of NAlteredVsN at N = Nfixed
-                int iGraph = config.fUseErrorCorrection?1:0;
-                if(config.fEveIsPresent) iGraph+=2;
-                NalteredVsError[iGraph]->SetPoint(pointCntr[iGraph], config.fSigma, y);
-                NalteredVsError[iGraph]->SetPointError(pointCntr[iGraph]++, 0, dynamic_cast<TGraphErrors *>(g_tmpptr)->GetEY()[Nfixed-1]);
-            }
+
+    for(const auto &config : fVettInfos) {
+        Color_t color = kRed + static_cast<Color_t>(10*config.fSigma);
+
+        g_tmpptr = dynamic_cast<TH1D *> (file->Get(TString::Format("%s_%s", Simulator::fAlteredDistrName, config.fInfos.c_str())));
+        if (g_tmpptr) {
+            int iGraph = config.fUseErrorCorrection?1:0;
+            if(config.fEveIsPresent) iGraph+=2;
+            double devstNuseful = dynamic_cast<TH1 *>(g_tmpptr)->GetStdDev();
+            double errorSigmaSquare = 2 * devstNuseful * dynamic_cast<TH1 *>(g_tmpptr)->GetStdDevError();
+            Simulator::SetStylesAndDraw(g_tmpptr, "", "", color);
+            devstVsNoise[iGraph]->SetPoint(devstVsNoiseCntr[iGraph], config.fSigma, devstNuseful * devstNuseful);
+            devstVsNoise[iGraph]->SetPointError(devstVsNoiseCntr[iGraph]++, 0, errorSigmaSquare);
+        }else{
+            std::cerr << std::endl << "nullptr reading fAlteredDistrName" << std::endl;
         }
-
-        Simulator::SetStylesAndDraw(NalteredVsError[0], "", "", kCyan - 2, 1, 24);
-        Simulator::SetStylesAndDraw(NalteredVsError[1], "", "", kViolet, 1, 32);
-        Simulator::SetStylesAndDraw(NalteredVsError[2], "", "", kCyan - 9, 1, 24);
-        Simulator::SetStylesAndDraw(NalteredVsError[3], "", "", kViolet + 4, 1, 32);
-
-        auto mg_NAlteredVsNoise = new TMultiGraph();
-        mg_NAlteredVsNoise->SetTitle("Altered_vs_Noise; #sigma noise; Naltered");
-        for (int i = 0; i < 4 ; i++) {
-            NalteredVsError[i]->Set(pointCntr[i]);
-            mg_NAlteredVsNoise->Add(NalteredVsError[i]);
-        }
-
-        mg_NAlteredVsNoise->Draw("APL");
-        auto leg = pad->BuildLegend();
-        leg->SetEntrySeparation(0);
-        leg->SetTextSize(0.05);
     }
+
+
+    SetStyleMultiGraph(devstVsNoise);
+
+    auto mg_Devst_sigma = new TMultiGraph();
+    mg_Devst_sigma->SetTitle("Useful_vs_Noise; #sigma noise; #devSt^2 useful");
+    for (int i = 0; i < 4 ; i++) {
+        devstVsNoise[i]->Set(devstVsNoiseCntr[i]);
+        mg_Devst_sigma->Add(devstVsNoise[i]);
+    }
+
+    mg_Devst_sigma->Draw("APL");
+    auto leg = pad->BuildLegend();
+    leg->SetEntrySeparation(0);
+    leg->SetTextSize(0.05);
+}
+
+void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) {
+    TObject* g_tmpptr = nullptr;
+
+    auto st_Nusefuldistr = new THStack();
+
+    for(const auto &config : fVettInfos) {
+        g_tmpptr = dynamic_cast<TH1D *> (file->Get(TString::Format("%s_%s", Simulator::fAlteredDistrName, config.fInfos.c_str())));
+        if (g_tmpptr) {
+            dynamic_cast<TH1D*>(g_tmpptr)->SetDirectory(nullptr);
+            st_Nusefuldistr->Add(dynamic_cast<TH1D *>(g_tmpptr));
+        }else{
+            std::cerr << std::endl << "nullptr reading fProbabilityPlotName" << std::endl;
+        }
+    }
+
+    cx->cd();
+    st_Nusefuldistr->SetNameTitle("Distrs of altered","Distrs of altered");
+    st_Nusefuldistr->Draw("nostack");
+}
+
+void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) {
+    auto pad = cx->cd();
+
+    TObject* g_tmpptr = nullptr;
+
+
+    TGraphErrors* slopeVsNoise[4]; //[0] P [1] L [2] P_Eve [3]L_Eve
+    InitMultiGraph(slopeVsNoise, "slope_noise");
+    int slopeVsNoiseCntr[4] = {0};
+
+
+    for(const auto &config : fVettInfos) {
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fProbabilityPlotName, config.fInfos.c_str())));
+        if (g_tmpptr) {
+            int iGraph = config.fUseErrorCorrection?1:0;
+            if(config.fEveIsPresent) iGraph+=2;
+            auto fit = new TF1("lin", "TMath::Power([0],x)", 1, config.fNQbits);
+            dynamic_cast<TGraphErrors*>(g_tmpptr)->Fit(fit,"Q0M");
+            slopeVsNoise[iGraph]->SetPoint(slopeVsNoiseCntr[iGraph], config.fSigma, fit->GetParameter(0));
+            slopeVsNoise[iGraph]->SetPointError(slopeVsNoiseCntr[iGraph]++, 0, fit->GetParError(0));
+            delete fit;
+        }else{
+            std::cerr << std::endl << "nullptr reading fProbabilityPlotName" << std::endl;
+        }
+    }
+
+
+    SetStyleMultiGraph(slopeVsNoise);
+
+    auto mg_slope_sigma = new TMultiGraph();
+    mg_slope_sigma->SetTitle("slope_vs_Noise; #sigma noise; probability slope");
+    for (int i = 0; i < 4 ; i++) {
+        slopeVsNoise[i]->Set(slopeVsNoiseCntr[i]);
+        mg_slope_sigma->Add(slopeVsNoise[i]);
+    }
+
+    mg_slope_sigma->Draw("APL");
+    auto leg = pad->BuildLegend();
+    leg->SetEntrySeparation(0);
+    leg->SetTextSize(0.05);
+}
+
+void Analyzer::InitMultiGraph(TGraphErrors **NalteredVsError, const char *name) const {
+    NalteredVsError[0] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+    NalteredVsError[0] -> SetNameTitle(TString::Format("%s_Physical_qbits", name));
+    NalteredVsError[1] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+    NalteredVsError[1] -> SetNameTitle(TString::Format("%s_Logical_qbits", name));
+    NalteredVsError[2] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+    NalteredVsError[2] -> SetNameTitle(TString::Format("%s_Physical_qbits_Eve", name));
+    NalteredVsError[3] = new TGraphErrors(static_cast<int>(fVettInfos.size()));
+    NalteredVsError[3] -> SetNameTitle(TString::Format("%s_Logical_qbits_Eve", name));
+}
+
+void Analyzer::SetStyleMultiGraph(TGraphErrors *const *mg) const {
+    Simulator::SetStylesAndDraw(mg[0], "", "", kCyan - 2, 1, 24);
+    Simulator::SetStylesAndDraw(mg[1], "", "", kViolet, 1, 32);
+    Simulator::SetStylesAndDraw(mg[2], "", "", kCyan - 9, 1, 24);
+    Simulator::SetStylesAndDraw(mg[3], "", "", kViolet + 4, 1, 32);
 }

@@ -19,7 +19,7 @@ public:
     static Analyzer* Instance(std::vector<ConfigSimulation> VettInfos);
     inline static void Destroy(){fgAnalyzer->~Analyzer();};
     void RunAnalyzer();
-    void JoinResults(TCanvas *cx, int plotFunctionOfErrors = 0);
+    void JoinResults(TCanvas *cx, uint32_t fixedN = 0);
 
 private:
     Analyzer(std::vector<ConfigSimulation> VettInfos);
@@ -29,11 +29,23 @@ private:
 
     static Analyzer* fgAnalyzer;
 
-    void AddMultiGraphToCanvas(TVirtualPad *cx, TFile *file, TMultiGraph *mg_NalteredVsNsent,
-                               TMultiGraph *mg_ProbabilityVsNsent) const;
     void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;
 
-    void PlotFunctionOfErrors(TCanvas *cx, TFile *file, int Nfixed);
+    void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed);
+
+    void PlotFunctionOfAltered(TVirtualPad *cx, TFile *file);
+
+    void ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const;
+
+    void AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const;
+
+    void PlotNalteredDistributions(TVirtualPad *cx, TFile *file);
+
+    void PlotSlopeVsNoise(TVirtualPad *cx, TFile *file);
+
+    void SetStyleMultiGraph(TGraphErrors *const *mg) const;
+
+    void InitMultiGraph(TGraphErrors **NalteredVsError, const char *name) const;
 };
 
 

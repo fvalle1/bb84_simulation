@@ -42,9 +42,8 @@ public:
     static constexpr const char* fBranchName = "dataBranch";
     static constexpr const char* fProbabilityPlotName = "probability_vs_N";
     static constexpr const char* fProbabilityTeoPlotName = "probability_vs_N_teo";
-    static constexpr const char* fNDistrName = "N_distr";
+    static constexpr const char* fAlteredDistrName = "N_distr";
     static constexpr const char* fUsefulPlotName = "useful_distr";
-    static constexpr const char* fPdfperLenghtCom = "PdfperLenghtCom";
 
     static void SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color = kRedBlue, Width_t linewidth = 4, Style_t markerStyle = 20); //Styles on TH1, TGraph...
 

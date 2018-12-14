@@ -64,11 +64,11 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
 
     auto qbit = new Qbit(fConfiguration.fUseErrorCorrection);                                // creo un Qbit che uso di volta in volta
 
-    for(int experiment = 0; experiment < fConfiguration.fNSimulations ; experiment++) {   // fNSimulations = numero di simulazioni
+    for(uint32_t experiment = 0; experiment < fConfiguration.fNSimulations ; experiment++) {   // fNSimulations = numero di simulazioni
         printf("\rExperiment %u/%u", experiment+1, fConfiguration.fNSimulations );
-        for (int N = 1; N <= fConfiguration.fNQbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
+        for (uint32_t N = 1; N <= fConfiguration.fNQbits; ++N) {                               // fNqbits = numero di qubit che Alice invia in ogni simulazione
             phone->InitResults(currentData);
-            for (int iqbit = 1; iqbit <= N; ++iqbit) {                         // ogni qbit della comunicazione viene creato da A, trasmesso, intercettato da E,  ritrasmesso, ricevuto da B, controllato dalla telefonata
+            for (uint32_t iqbit = 1; iqbit <= N; ++iqbit) {                         // ogni qbit della comunicazione viene creato da A, trasmesso, intercettato da E,  ritrasmesso, ricevuto da B, controllato dalla telefonata
                 Buddy::PrepareQbit(qbit);
                 phone->SetNewQbit(qbit);
                 fChannels[0]->PassQbit(qbit);
@@ -122,17 +122,17 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     // create histograms
     auto PdfperLenghtCom = new TH1D *[fConfiguration.fNQbits];
     char title[50];
-    for (int i = 0; i < fConfiguration.fNQbits; i++) {
+    for (uint32_t i = 0; i < fConfiguration.fNQbits; i++) {
         sprintf(title, "PdfperLenghtCom_%d", i);
         PdfperLenghtCom[i] = new TH1D(title, title, 11, -0.05, 1.05);
     }
 
     // Fill histograms
-    int currentN = 0;
+    Long64_t currentN = 0;
     double fractionOfAltered = 0.;
     auto entries = tree->GetEntries();
-    for (int entry = 0; entry < entries; ++entry) {
-        printf("\r%u/%llu", entry + 1, entries);
+    for (Long64_t entry = 0; entry < entries; ++entry) {
+        printf("\r%llu/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
         int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
@@ -142,7 +142,7 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
         PdfperLenghtCom[currentN]->Fill(fractionOfAltered, 1. / fConfiguration.fNSimulations);
     }
 
-    for (int iqbit = 0; iqbit < fConfiguration.fNQbits; iqbit++) {
+    for (uint32_t iqbit = 0; iqbit < fConfiguration.fNQbits; iqbit++) {
         double currentMean, currentSigma;
 
         currentMean = PdfperLenghtCom[iqbit]->GetMean();
@@ -159,7 +159,7 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     }
 
     // delete temporary histograms
-    for(int i=0; i<fConfiguration.fNQbits; i++){
+    for(uint32_t i=0; i<fConfiguration.fNQbits; i++){
         delete PdfperLenghtCom[i];
 //        PdfperLenghtCom[i]->Write();
     }
@@ -185,14 +185,14 @@ void Simulator::PlotNSameBasisVsNSent(TTree *tree) {
     static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
-    auto NSameBasisVsNsent = new TH1D(fUsefulHistName, TString::Format("%s_%s", fUsefulHistName, fConfiguration.fInfos.c_str()), fConfiguration.fNQbits, 0.5, fConfiguration.fNQbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
-    auto Useful_distr = new TH1D(fUsefulPlotName, fUsefulPlotName, 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
+    auto NSameBasisVsNsent = new TH1D(TString::Format("%s_%s", fUsefulHistName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fUsefulHistName, fConfiguration.fInfos.c_str()), fConfiguration.fNQbits, 0.5, fConfiguration.fNQbits+0.5);  //number of photons intercepted vs. number of photons measured in the same base
+    auto Useful_distr = new TH1D(TString::Format("%s_%s", fUsefulPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fUsefulPlotName, fConfiguration.fInfos.c_str()), 11, -0.05, 1.05);  //number of photons intercepted vs. number of all photons sent
 
     double distrNormFactor = 1. / fConfiguration.fNSimulations / fConfiguration.fNQbits;
 
     auto entries = tree->GetEntries();
-    for (int entry = 0; entry < entries; ++entry) {
-        printf("\r%u/%llu", entry + 1, entries);
+    for (Long64_t entry = 0; entry < entries; ++entry) {
+        printf("\r%llu/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
         int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
@@ -201,9 +201,9 @@ void Simulator::PlotNSameBasisVsNSent(TTree *tree) {
         if (currentData.Ntot == fConfiguration.fNQbits / 2) Useful_distr->Fill(static_cast<double>(NSamebasis) / currentData.Ntot, distrNormFactor);
     }
 
-    NSameBasisVsNsent->Write();
+    NSameBasisVsNsent->Write(TString::Format("%s_%s", fUsefulHistName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     NSameBasisVsNsent->SetDirectory(nullptr);
-    Useful_distr->Write();
+    Useful_distr->Write(TString::Format("%s_%s", fUsefulPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
     Useful_distr->SetDirectory(nullptr);
 
     delete Useful_distr;
@@ -216,26 +216,26 @@ void Simulator::HistNintercepted(TTree *tree) {
     static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
-    double fractionOfIntercepted = 0.;
+    double fractionOfAltered = 0.;
     double distrNormFactor = 1. / fConfiguration.fNSimulations / fConfiguration.fNQbits;
 
-    auto NVsNHist_distr = new TH1D(fNDistrName, fNDistrName, 10, 0, 1);
+    auto NVsNHist_distr = new TH1D(fAlteredDistrName, fAlteredDistrName, 10, 0, 1);
     auto entries = tree->GetEntries();
-    for (int entry = 0; entry < entries; ++entry) {
-        printf("\r%u/%llu", entry + 1, entries);
+    for (Long64_t entry = 0; entry < entries; ++entry) {
+        printf("\r%llu/%llu", entry + 1, entries);
         tree->GetEvent(entry);
 
         if (currentData.Ntot == fConfiguration.fNQbits / 2) {
             int NSamebasis = currentData.SameBasisAltered + currentData.SameBasisUntouched;
             if (NSamebasis != 0)
-                fractionOfIntercepted = static_cast<double>(currentData.SameBasisAltered) / NSamebasis;
-            else fractionOfIntercepted = 0.;
+                fractionOfAltered = static_cast<double>(currentData.SameBasisAltered) / NSamebasis;
+            else fractionOfAltered = 0.;
 
-            NVsNHist_distr->Fill(fractionOfIntercepted, distrNormFactor);
+            NVsNHist_distr->Fill(fractionOfAltered, distrNormFactor);
         }
     }
 
-    NVsNHist_distr->Write();
+    NVsNHist_distr->Write(TString::Format("%s_%s", fAlteredDistrName, fConfiguration.fInfos.c_str()), TObject::kSingleKey| TObject::kOverwrite);
     NVsNHist_distr->SetDirectory(nullptr);
     delete NVsNHist_distr;
 }
@@ -253,11 +253,11 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {
         auto probVsNHist = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str())));
         auto probVsNHist_teo = dynamic_cast<TF1*>(file.Get(fProbabilityTeoPlotName));
         auto NVsNHist = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fNPlotName, fConfiguration.fInfos.c_str())));
-        auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(fNDistrName));
+        auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(TString::Format("%s_%s", fAlteredDistrName, fConfiguration.fInfos.c_str())));
         if (NVsNHist_distr) NVsNHist_distr->SetDirectory(nullptr);
-        auto UsefulHist = dynamic_cast<TH1D *>(file.Get(fUsefulPlotName));
+        auto UsefulHist = dynamic_cast<TH1D *>(file.Get(TString::Format("%s_%s", fUsefulPlotName, fConfiguration.fInfos.c_str())));
         if (UsefulHist) UsefulHist->SetDirectory(nullptr);
-        auto NSameBasisVsNqbit = dynamic_cast<TH1D*>(file.Get(fUsefulHistName));
+        auto NSameBasisVsNqbit = dynamic_cast<TH1D*>(file.Get(TString::Format("%s_%s", fUsefulHistName, fConfiguration.fInfos.c_str())));
         if (NSameBasisVsNqbit) NSameBasisVsNqbit->SetDirectory(nullptr);
 
         file.Close();
