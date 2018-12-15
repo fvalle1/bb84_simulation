@@ -50,8 +50,7 @@ void bb84_simulation(){
   configs.emplace_back(ConfigSimulation(true, 100, 1000, false, 2., [&](){return gRandom->Gaus(0, 2.);}));
   configs.emplace_back(ConfigSimulation(true, 100, 1000, false, 2.4, [&](){return gRandom->Gaus(0, 2.4);}));
 
-
-  
+  //Instance of Analyzer, run all simulations, put results on the canvas and delete the Analyzer
   auto MyAnalizer = Analyzer::Instance(configs);
   MyAnalizer->RunAnalyzer();
   MyAnalizer->JoinResults(cx, 50);

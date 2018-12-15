@@ -17,17 +17,17 @@ public:
                      double sigma = 0.,
                      std::function<double()> PdfNoise = nullptr);
 
-    ConfigSimulation(const ConfigSimulation&); //creerò dei std::vector<Config>
+    ConfigSimulation(const ConfigSimulation&);
     ~ConfigSimulation(){};
 
-    //datamember pubblici in modo da essere subito accessibili da simulator
+    // public datamemers to be directly accessible by Simulator
     bool fUseErrorCorrection;
     bool fEveIsPresent;
-    uint32_t fNQbits;
-    uint32_t fNSimulations;
+    uint32_t fNQbits;          // maximum length of communication
+    uint32_t fNSimulations;    // number of experiment for each length of communication
     double fSigma;
     std::function<double(void)> fPdfNoise;
-    std::string fInfos;
+    std::string fInfos;        // string reporting the configuration of the simulation
 };
 
 #endif 

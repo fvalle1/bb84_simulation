@@ -23,12 +23,13 @@ public:
 
 private:
     Analyzer(std::vector<ConfigSimulation> VettInfos);
-    Analyzer(const Analyzer&); //avoid automatic copy constructor
+    Analyzer(const Analyzer&);                           // avoid automatic copy constructor
     ~Analyzer();
-    std::vector<ConfigSimulation> fVettInfos;
+    std::vector<ConfigSimulation> fVettInfos;            // vector containing all the configurations we want to simulate
 
     static Analyzer* fgAnalyzer;
 
+    // functions called by RunSimulation and JoinResults
     void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;
 
     void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed);
