@@ -74,7 +74,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
     TFile file(fFilename, "UPDATE");                             // creo un file
     auto tree = new TTree(fTreeName, fTreeName);                 // creo un tree
     tree->Branch(fBranchName, &currentData.Ntot, "Ntot/I:SameBasisAltered:SameBasisUntouched"); // &currentData.Not -->  indirizzo del primo elemento della sruttura
-    // "Ntot:...." --> concatenation of all the variable names and types separated by ':'
+                                                                                                // "Ntot:...." --> concatenation of all the variable names and types separated by ':'
     tree->SetAutoSave(-10000000); //10MB --> flush every 10MB
 
     auto qbit = new Qbit(fConfiguration.fUseErrorCorrection);                                   // creo un Qbit che uso di volta in volta
