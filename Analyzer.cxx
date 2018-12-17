@@ -128,13 +128,13 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
         else color = kViolet;
         color += static_cast<Color_t>(10 * config.fSigma); //color changes due to error factor
 
-        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));   // nel file cerco un oggetto che abbia il nome "nome grafico + info", Get restituisce il puntatore a questo oggetto, lo trasformo in un puntatore ad un TGraphError, assegno questo puntatore a g_tmpptr
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fAlteredVsSentName, config.fInfos.c_str())));   // nel file cerco un oggetto che abbia il nome "nome grafico + info", Get restituisce il puntatore a questo oggetto, lo trasformo in un puntatore ad un TGraphError, assegno questo puntatore a g_tmpptr
         if (g_tmpptr) {
             if (config.fUseErrorCorrection) Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 23);
             else Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 20);   // different markers on the graph
             mg_NalteredVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
         }else{
-            std::cerr << std::endl << g_tmpptr << "nullptr reading fNPlotName" << std::endl;
+            std::cerr << std::endl << g_tmpptr << "nullptr reading fAlteredVsSentName" << std::endl;
         }
 
         g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(
@@ -165,7 +165,7 @@ void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) {
     double x , y;
 
     for(const auto &config : fVettInfos) {
-        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fNPlotName, config.fInfos.c_str())));
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fAlteredVsSentName, config.fInfos.c_str())));
         if (g_tmpptr) {
             g_tmpptr->GetPoint(Nfixed - 1, x, y); //Get value of NAlteredVsN at N = Nfixed and save coordinates in x and y
             int iGraph = config.fUseErrorCorrection?1:0;

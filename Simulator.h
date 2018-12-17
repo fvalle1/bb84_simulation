@@ -28,22 +28,22 @@ public:
     inline static void Destroy(){fgSimulator->~Simulator();};
 
 
-    Simulator* RunSimulation();
-    Simulator* GeneratePlots();
+    Simulator* RunSimulation(); //Simulate data and store on tree
+    Simulator* GeneratePlots(); //Save plots on file
     Simulator* ShowResults(TCanvas *cx);
 
 
     //Lascio i nomi con cui salvo sui file pubblici per essere facilmente identificati ovunque
     //static constexpr const char* per avere dei const char* dichiarati e definiti nello stesso posto
     static constexpr const char* fFilename = "bb84_simulation.root";
-    static constexpr const char* fNPlotName = "Naltered_vs_Nsent";
-    static constexpr const char* fUsefulHistName = "NSameBase_vs_Nsent";
-    static constexpr const char* fTreename = "bb84";
-    static constexpr const char* fBranchName = "dataBranch";
+    static constexpr const char* fAlteredVsSentName = "Naltered_vs_Nsent";
+    static constexpr const char* fSameBasisHistName = "NsameBase_vs_Nsent";
+    static constexpr const char* fTreeName = "tree_bb84";
+    static constexpr const char* fBranchName = "branch_data_bb84";
     static constexpr const char* fProbabilityPlotName = "probability_vs_N";
     static constexpr const char* fProbabilityTeoPlotName = "probability_vs_N_teo";
-    static constexpr const char* fAlteredDistrName = "N_distr";
-    static constexpr const char* fUsefulPlotName = "useful_distr";
+    static constexpr const char* fAlteredDistrName = "Naltered_distr";
+    static constexpr const char* fUsefulPlotName = "Nsame_Base_distr";
 
     static void SetStylesAndDraw(TObject *obj, const char *xLabel, const char *ylabel, Color_t color = kRedBlue, Width_t linewidth = 4, Style_t markerStyle = 20); //Styles on TH1, TGraph...
 
@@ -54,15 +54,14 @@ private:
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
 
-    void PlotPdfAtFixedNSent(TTree *tree);
+    void PlotPdfAtFixedNSent(TTree *tree);  //distribution of N altered one per N sent
     void PlotNSameBasisVsNSent(TTree *tree);
-    void HistNintercepted(TTree*);
+    void HistNaltered(TTree *);
 
     Channel** fChannels;
     ConfigSimulation fConfiguration;
 
-
-    static Simulator* fgSimulator;                  // global pointer
+    static Simulator* fgSimulator;   // global pointer
 };
 
 
