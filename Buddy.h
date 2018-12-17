@@ -13,7 +13,7 @@
 class Buddy{
 public:
     static void PrepareQbit(Qbit *qbit);    //Preparo il qbit con base e polarizzazione
-    static void ReceiveQbit(Qbit *qbit);    //cambia basis del qbit
+    static void ReceiveQbit(Qbit *qbit);    //cambia base del qbit
     static void InterceptQbit(Qbit *qbit);  //intercetto qbit: Eve
 
     static bool EveIsPresent;              //decido se eve deve intervenire o meno

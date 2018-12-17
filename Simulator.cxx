@@ -183,7 +183,7 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
 
 
 void Simulator::PlotNSameBasisVsNSent(TTree *tree) {
-    printf("\nPlotting N with same basis vs total N sent\n");
+    printf("\nPlotting N with same base vs total N sent\n");
     TBranch *data = tree->GetBranch(fBranchName);
     static CommunicationInfos currentData;
     data->SetAddress(&currentData);

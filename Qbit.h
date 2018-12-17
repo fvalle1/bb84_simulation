@@ -14,10 +14,10 @@
 
 using std::ostream;
 
-typedef enum basis{              // definisco il tipo "basis", cheè un enumeration. può assumere solo i valori Plusminuse ZeroOne
+typedef enum base{              // definisco il tipo "base", cheè un enumeration. può assumere solo i valori Plusminuse ZeroOne
     ZeroOne,
     PlusMinus
-} basis;
+} base;
 
 typedef bool polarization;       // definisco il tipo "polarization", che è un booleano. Sarà 0 o 1
 
@@ -28,14 +28,12 @@ public:
     Qbit &operator=(const Qbit &source);
     ~Qbit();
 
-    inline basis GetBase() const {return fBase;}
+    inline base GetBase() const {return fBase;}
     inline polarization GetState() const {return fState;}
     inline int GetNPhysicalQbits() const {return fPhysicsQbits;}
 
-    inline void SetBase(basis b){fBase = b;}
-
-    void PrepareState(basis b, polarization pol);
-    void MeasureState(basis b);
+    void PrepareState(base b, polarization pol);
+    void MeasureState(base b);
 
     void AddNoise(std::function<double()>);
 
@@ -46,7 +44,7 @@ public:
 
 private:
     double* fTheta;
-    basis fBase;
+    base fBase;
     polarization fState;
     bool fIsLogic;
     int fPhysicsQbits;
