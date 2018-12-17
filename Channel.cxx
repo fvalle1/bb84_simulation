@@ -15,9 +15,7 @@ void Channel::PassQbit(Qbit* qbit) {
         std::cout<<*qbit<<std::endl;
     }
 
-    if(fPdf){
-        qbit->AddNoise(fPdf);
-    }
+    if(fPdf) qbit->AddNoise(fPdf);
 
     if(Qbit::DEBUG) {
         printf("\n..passed qbit through channel\n");

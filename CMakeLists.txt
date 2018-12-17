@@ -34,14 +34,10 @@ ROOT_GENERATE_DICTIONARY(G__Analyzer Analyzer.h LINKDEF)
 add_library(Analyzer SHARED Analyzer.cxx G__Analyzer.cxx)
 target_link_libraries(Analyzer Simulator ${ROOT_LIBRARIES})
 
-include_directories(~/anaconda3/include)
-link_directories(~/anaconda3/lib)
-
 add_executable(
         bb84
         main.cxx
         StopWatch.cxx
-        TelegramWatch.cxx
 )
 
 target_link_libraries(

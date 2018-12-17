@@ -23,7 +23,7 @@ Phone::~Phone()
     delete fQbitA;
 }
 
-void Phone::InitResults(CommunicationInfos &data){          // inizializzo data
+void Phone::InitResults(CommunicationInfos &data){          // init data
     data.Ntot = 0;
     data.SameBasisUntouched = 0;
     data.SameBasisAltered = 0;

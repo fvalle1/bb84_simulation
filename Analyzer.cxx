@@ -3,7 +3,6 @@
 //
 
 
-#include <THStack.h>   // collection of histograms
 #include "Analyzer.h"
 
 /// global pointer set to nullptr
@@ -81,8 +80,6 @@ void Analyzer::JoinResults(TCanvas *cx, uint32_t fixedN) {
     PlotNalteredDistributions(cx->cd(5), file);                // collect the histograms fAlteredDistrName of each simulation on the same THStack
     PlotFunctionOfAltered(cx->cd(6), file);                    // draw sigma_squared of TH1 fAlteredDistrName vs sigma_noise (for each simulation)
 
-//    delete mg_NalteredVsNsent;
-//    delete mg_ProbabilityVsNsent;
     file->Close();
     delete file;
 }
@@ -124,7 +121,7 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
 
     for(const auto &config : fVettInfos) {
         Color_t color;
-        if(config.fEveIsPresent) color = kGreen; //Green(407) and violet(880) should be distant RTypes.h
+        if(config.fEveIsPresent) color = kGreen; //Green(407) and violet(880) are distant RTypes.h to avoid overlap
         else color = kViolet;
         color += static_cast<Color_t>(10 * config.fSigma); //color changes due to error factor
 
@@ -155,7 +152,7 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
 /// 1. P qbits_No Eve, 2. L qbits_No Eve, 3. P qbits_Eve, 4. L qbits_Eve.
 /// Then sets points and errors getting values of NAlteredVsN at N = Nfixed from the graph fNPlotName of each simulation,
 /// sets the style of these TGraphErrors. It creates a new multigraph, adds the 4 TGraphErrors and draws it.
-void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) {
+void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) const {
 
     auto pad = cx->cd();
     TGraphErrors* NalteredVsError[4]; // [0] P, [1] L, [2] P_Eve, [3] L_Eve
@@ -168,7 +165,7 @@ void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) {
         g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fAlteredVsSentName, config.fInfos.c_str())));
         if (g_tmpptr) {
             g_tmpptr->GetPoint(Nfixed - 1, x, y); //Get value of NAlteredVsN at N = Nfixed and save coordinates in x and y
-            int iGraph = config.fUseErrorCorrection?1:0;
+            int iGraph = config.fUseErrorCorrection?1:0; //chose the right graph
             if(config.fEveIsPresent) iGraph+=2;
             NalteredVsError[iGraph]->SetPoint(pointCntr[iGraph], config.fSigma, y);
             NalteredVsError[iGraph]->SetPointError(pointCntr[iGraph]++, 0, dynamic_cast<TGraphErrors *>(g_tmpptr)->GetEY()[Nfixed-1]);  // GetEY() returns the array of Y errors
@@ -181,7 +178,7 @@ void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) {
     auto mg_NAlteredVsNoise = new TMultiGraph();
     mg_NAlteredVsNoise->SetTitle("Altered_vs_Noise; #sigma noise; Naltered");
     for (int i = 0; i < 4 ; i++) {
-        NalteredVsError[i]->Set(pointCntr[i]);
+        NalteredVsError[i]->Set(pointCntr[i]); //set point to delete underflows
         mg_NAlteredVsNoise->Add(NalteredVsError[i]);
     }
 
@@ -197,7 +194,7 @@ void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) {
 /// Then sets points and errors getting values of sigma_squared and error_sigma_squared for each TH1 fAlteredDistrName
 /// of each simulation, sets the style of these TGraphErrors. It creates a new multigraph, adds the 4 TGraphErrors
 /// and draws it.
-void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) {
+void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) const{
     auto pad = cx->cd();
 
     TObject* g_tmpptr = nullptr;
@@ -215,10 +212,10 @@ void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) {
         if (g_tmpptr) {
             int iGraph = config.fUseErrorCorrection?1:0;
             if(config.fEveIsPresent) iGraph+=2;
-            double devstNuseful = dynamic_cast<TH1 *>(g_tmpptr)->GetStdDev();
-            double errorSigmaSquare = 2 * devstNuseful * dynamic_cast<TH1 *>(g_tmpptr)->GetStdDevError();
+            double devstNsameBase = dynamic_cast<TH1 *>(g_tmpptr)->GetStdDev();
+            double errorSigmaSquare = 2 * devstNsameBase * dynamic_cast<TH1 *>(g_tmpptr)->GetStdDevError();
             Simulator::SetStylesAndDraw(g_tmpptr, "", "", color);
-            devstVsNoise[iGraph]->SetPoint(devstVsNoiseCntr[iGraph], config.fSigma, devstNuseful * devstNuseful);
+            devstVsNoise[iGraph]->SetPoint(devstVsNoiseCntr[iGraph], config.fSigma, devstNsameBase * devstNsameBase);
             devstVsNoise[iGraph]->SetPointError(devstVsNoiseCntr[iGraph]++, 0, errorSigmaSquare);
         }else{
             std::cerr << std::endl << "nullptr reading fAlteredDistrName" << std::endl;
@@ -243,7 +240,7 @@ void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) {
 
 
 /// to collect the histograms fAlteredDistrName of each simulation on the same THStack
-void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) {
+void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const {
     TObject* g_tmpptr = nullptr;
 
     auto st_Nusefuldistr = new THStack();
@@ -269,7 +266,7 @@ void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) {
 /// Then sets points and errors getting values of linear fit on TGraph fProbabilityPlotName of each simulation,
 /// sets the style of these TGraphErrors. So these TGraphErrors represent slope of the lines vs sigmas.
 /// It creates a new multigraph, adds the 4 TGraphErrors and draws it.
-void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) {
+void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const {
     auto pad = cx->cd();
 
     TObject* g_tmpptr = nullptr;

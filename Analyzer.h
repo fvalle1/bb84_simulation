@@ -9,6 +9,7 @@
 #include <TCanvas.h>
 #include <TFile.h>
 #include <TMultiGraph.h>
+#include <THStack.h>
 #include <TLegend.h>
 #include "Simulator.h"
 #include "ConfigSimulation.h"
@@ -31,21 +32,13 @@ private:
 
     // functions called by RunSimulation and JoinResults
     void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;
-
-    void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed);
-
-    void PlotFunctionOfAltered(TVirtualPad *cx, TFile *file);
-
+    void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) const;
+    void PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) const;
     void ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const;
-
     void AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const;
-
-    void PlotNalteredDistributions(TVirtualPad *cx, TFile *file);
-
-    void PlotSlopeVsNoise(TVirtualPad *cx, TFile *file);
-
+    void PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const;
+    void PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const;
     void SetStyleMultiGraph(TGraphErrors *const *mg) const;
-
     void InitMultiGraph(TGraphErrors **NalteredVsError, const char *name) const;
 };
 
