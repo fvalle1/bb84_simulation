@@ -38,6 +38,7 @@ private:
     void AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const;
     void PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const;
     void PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const;
+
     void SetStyleMultiGraph(TGraphErrors *const *mg) const;
     void InitMultiGraph(TGraphErrors **NalteredVsError, const char *name) const;
 };

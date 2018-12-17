@@ -226,7 +226,7 @@ void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) const{
     SetStyleMultiGraph(devstVsNoise);
 
     auto mg_Devst_sigma = new TMultiGraph();
-    mg_Devst_sigma->SetTitle("Useful_vs_Noise; #sigma noise; #devSt^2 useful");
+    mg_Devst_sigma->SetTitle("#sigmaAltered_vs_Noise; #sigma noise; #devSt^2 altered");
     for (int i = 0; i < 4 ; i++) {
         devstVsNoise[i]->Set(devstVsNoiseCntr[i]);
         mg_Devst_sigma->Add(devstVsNoise[i]);
