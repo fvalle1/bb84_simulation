@@ -18,10 +18,12 @@ void bb84_simulation(){
 
   configs.emplace_back(ConfigSimulation(false, 100, 5000, false, 0., nullptr));
   configs.emplace_back(ConfigSimulation(false, 100, 5000, true, 0.2, [&](){return gRandom->Gaus(0, 0.2);}));
+  configs.emplace_back(ConfigSimulation(false, 100, 5000, true, 0.8, [&](){return gRandom->Gaus(0, 0.8);}));
   configs.emplace_back(ConfigSimulation(true, 100, 5000, true, 0., nullptr));
-  configs.emplace_back(ConfigSimulation(true, 100, 5000, true, 0, [&](){return gRandom->Gaus(0, 0.2);}));
+  configs.emplace_back(ConfigSimulation(true, 100, 5000, true, 0.2, [&](){return gRandom->Gaus(0, 0.2);}));
+  configs.emplace_back(ConfigSimulation(true, 100, 5000, true, 0.8, [&](){return gRandom->Gaus(0, 0.8);}));
 
-  //Instance of Analyzer, run all simulations, put results on the canvas and delete the Analyzer
+//Instance of Analyzer, run all simulations, put results on the canvas and delete the Analyzer
   auto MyAnalizer = Analyzer::Instance(configs);
   MyAnalizer->RunAnalyzer();
   MyAnalizer->JoinResults(cx, 50);

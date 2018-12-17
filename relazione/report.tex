@@ -72,7 +72,7 @@ tabsize=2,                     % sets default tabsize to 2 spaces
 \subsection{BB84, protocollo quantistico di distribuzione delle chiavi per crittografia}
 Il BB84 è stato il primo metodo di crittografia quantistica mai inventato ed è utilizzabile come metodo per comunicare in modo privato una chiave segreta tra due utenti per poi utilizzare un protocollo del tipo "cifrario di Vernam" per la crittazione. È stato sviluppato da Charles H. Bennett e Gilles Brassard nel 1984.
 \paragraph{Descrizione}
-Alice e Bob vogliono riuscire a stabilire una comunicazione sicura per scambiarsi una chiave segreta. La chiave segreta sarà costituita da una stringa di qubit negli stati $|0\rangle, |1\rangle, |-\rangle, |+\rangle$, che fisicamente saranno, per esempio, fotoni polarizzati ad angoli rispettivamente di 0°, 90°, -45° e 45°.
+Alice e Bob vogliono riuscire a stabilire una comunicazione sicura per scambiarsi una chiave segreta. La chiave segreta sarà costituita da una stringa di bit $\{0,1\}$, ottenuti misurando qubit negli stati $|0\rangle, |1\rangle, |-\rangle, |+\rangle$, che fisicamente saranno, per esempio, fotoni polarizzati ad angoli rispettivamente di 0°, 90°, -45° e 45°.
 Prima dello scambio della chiave segreta Alice e Bob adotteranno il protocollo BB84 per capire se la loro comunicazione è intercettata da qualcuno (Eve). Il protocollo funziona in questo modo:
 \begin{itemize}
     \item Alice preparerà un fotone e sceglierà in modo casuale e con uguale probabilità se utilizzare il filtro polarizzatore (\textit{base}) $\{0,1\}$ o quello $\{+,-\}$, inoltre, sempre con probabilità 0.5, codificherà il qbit nello stato 0 o 1 associato a quella base. In questo modo potrà codificare tutti e 4 gli stati possibili. Alice terrà traccia delle basi usate e degli stati preparati.
@@ -122,7 +122,7 @@ $: ./bb84
 Il codice è composto da diverse classi, in particolare:
 \paragraph{Qbit}
 Rappresenta il nucleo della comunicazione, ha come datamember una base che può essere \textit{ZeroOne} o \textit{PlusMinus} e una polarizzazione che può essere \textit{up} o \textit{down}.
-Qbit ha al suo interno i metodi per simulare la  preparazione, la misura e l'aggiunta di rumeore secondo una funzione data.
+Qbit ha al suo interno i metodi per simulare la  preparazione, la misura e l'aggiunta di rumore secondo una funzione data.
 I metodi sono automaticamente implementati nel caso di qbit fisici e logici, è sufficiente settare la variabile \textit{fIsLogic}.
 
 \paragraph{Channel}
@@ -159,15 +159,17 @@ Vengono simulate comunicazioni di lunghezza variabile e per ogni data lunghezza 
 Analyzer riceve in input un array di ConfigSimulator con diverse combinazioni dei parametri da testare. Per ognuna di queste costruisce un Simulator con cui eseguire le analisi e poi raggruppa i risultati.
 
 \subsection{Plot e risultati}
-Sia Simulator, sia Analyzer possono essere chiamati a simulazione già avvenuta, solo per mostrare i risultati.
-
+Simulator viene creato, vengono eseguite le simulazioni, vengono generati i plot e infine vengono mostrati.
 \begin{lstlisting}[language=bash, style=myRoot]
 root [0] 
 Processing compile.C...
 root [1] sim = Simulator::Instance()
-root [2] cx = new TCanvas()
-root [3] sim->ShowResults(cx)
+root [2] sim->RunSimulation()->GeneratePlots()
+root [3] cx = new TCanvas()
+root [4] sim->ShowResults(cx)
 \end{lstlisting}
+
+Si noti che invocando solo \textit{sim->ShowResults(cx)} è possibile, a simulazione già avvenuta, mostrare solamente i risultati.
 
 \clearpage
 \section{Risultati}
@@ -202,7 +204,7 @@ In figura~\ref{fig:grafici_LvsP_e_ProbabilityVsN} viene graficato per 4 configur
 \end{figure}
 
 \clearpage
-\subsection{Confronto trasmissione con qbit fisici e logici in presenza di rumore, senza Eve}
+\subsection{Trasmissione con qbit fisici e logici in presenza di rumore, senza Eve}
 
 In figura ~\ref{fig:alteredvsnoise} Si mostrano i risultati ottenuti simulando fino a 50 qbit, con 1000 esperimenti senza Eve.
 Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
@@ -248,5 +250,17 @@ Inoltre per rumori gaussiani con $\sigma>1.5$, anche senza intercettori la comun
 \label{fig:locical_eve_noeve}
 \end{figure}
 
+
+\subsection{Deviazione standard in funzione del rumore}
+Si studia infine l'andamento della larghezza della distribuzione della frazione di qbit alterati al variare del rumore.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{devstVsNoise.jpeg}
+\caption{Anadamento della deviazione standard in funzione del rumore}
+\label{fig:devstVsNoise}
+\end{figure}
+
+In figura~\ref{fig:devstVsNoise} l'andamento della varianza $\sigma^2$ della curva \textit{Naltered} (la seconda in basso in figura~\ref{fig:simulator}) per diversi rumori.
 
 \end{document}
