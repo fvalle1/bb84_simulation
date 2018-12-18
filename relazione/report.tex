@@ -130,13 +130,7 @@ Serve ad aggiungere, su richiesta, il rumore ai qbit secondo una funzione data.
 Possono essere aggiunti un numero variabile di canali.
 
 \paragraph{Phone}
-Serve a confrontare i qbit all'inizio e alla fine della comunicazione.
-
-Ha un datamember \textit{fQbitA} in cui vengono salvati i parametri del qbit inviato.
-
-Nucleo della classe è il metodo \textit{MakeCallClassicalChannel} in cui vengono salvati i dati utili nelle successive analisi.
-
-In Phone e in diverse parti del codice si farà riferimento a
+Serve a confrontare i qbit all'inizio e alla fine della comunicazione. Ha un datamember \textit{fQbitA} in cui vengono salvati i parametri del qbit inviato da Alice. Nucleo della classe è il metodo \textit{MakeCallClassicalChannel} in cui vengono salvati i dati utili nelle successive analisi.\\In Phone e in diverse parti del codice si farà riferimento a
 \begin{itemize}
 \item \textbf{Nsent} è il numero di qbit inviati per \textbf{simulazione}
 \item \textbf{SamebasisAltered} è il numero di qbit \textbf{mutati} durante la trasmissione
@@ -145,21 +139,19 @@ In Phone e in diverse parti del codice si farà riferimento a
 \end{itemize}
 
 \paragraph{Buddy}
-Implementa staticamente funzioni per preparare, intercettare e ricevere un qbit
+Implementa staticamente funzioni per preparare, intercettare e ricevere un qbit.
 
 \paragraph{ConfigSimulator}
 Ha come datamember i diversi parametri con cui si può configurare una simulazione.
 
 \paragraph{Simulator}
-Simulator si occupa di eseguire una simulazione dati i parametri in un ConfigSimulator e genera i plot che verranno salvati su file.
-
-Vengono simulate comunicazioni di lunghezza variabile e per ogni data lunghezza vengono eseguiti più esperimenti in modo da accumulare statistica.
+Simulator si occupa di eseguire una simulazione dati i parametri in un ConfigSimulator e genera i plot che verranno salvati su file. Vengono simulate comunicazioni di lunghezza variabile e per ogni data lunghezza vengono eseguiti più esperimenti in modo da accumulare statistica.
 
 \paragraph{Analyzer}
 Analyzer riceve in input un array di ConfigSimulator con diverse combinazioni dei parametri da testare. Per ognuna di queste costruisce un Simulator con cui eseguire le analisi e poi raggruppa i risultati.
 
 \subsection{Plot e risultati}
-Simulator viene creato, vengono eseguite le simulazioni, vengono generati i plot e infine vengono mostrati.
+Tramite Simulator è possibile eseguire le simulazioni, generare i plot e infine mostrare i risultati.
 \begin{lstlisting}[language=bash, style=myRoot]
 root [0] 
 Processing compile.C...
@@ -168,8 +160,7 @@ root [2] sim->RunSimulation()->GeneratePlots()
 root [3] cx = new TCanvas()
 root [4] sim->ShowResults(cx)
 \end{lstlisting}
-
-Si noti che invocando solo \textit{sim->ShowResults(cx)} è possibile, a simulazione già avvenuta, mostrare solamente i risultati.
+Si noti che invocando solo \textit{sim$\to$ShowResults(cx)} è possibile, a simulazione già avvenuta, mostrare solamente i risultati.
 
 \clearpage
 \section{Risultati}
@@ -184,18 +175,15 @@ Si noti che invocando solo \textit{sim->ShowResults(cx)} è possibile, a simulaz
 
 In figura~\ref{fig:simulator} un esempio di esecuzione di Simulator, da sinistra verso destra si trova:
 \begin{itemize}
-\item Probabilità che la comunicazione venga alterata in funzione del numero di qbit inviati
-\item Numero di qbit alterati in funzione del numero di qbit inviati, in basso la distribuzione per una comunicazione a 50qbit
-\item numero di qbit effettivamente utilizzati, in funzione del numero di qbit inviati, in basso la distribuzione a 50 qbit
+\item Probabilità che non ci si accorga di un'alterazione della comunicazione, in funzione del numero di qbit inviati. In basso in scala logaritmica.
+\item Numero di qbit alterati in funzione del numero di qbit inviati e, in basso, la distribuzione per una comunicazione a 50 qbit.
+\item Numero di qbit effettivamente utilizzati, in funzione del numero di qbit inviati e, in basso, la distribuzione a 50 qbit.
 \end{itemize}
-
 Si nota che in assenza di rumore, con un numero sufficiente di qbit inviati, circa il $50\%$ sono utili alla comunicazione e circa il $25\%$ sono alterati in presenza di Eve.
 
 \clearpage
 \subsection{Frazione di qbit alterati in funzione della lunghezza di comunicazione}
-Utilizzando la classe \textit{Analyzer} è possibile fare diverse simulazioni cambiano i vari parametri.
-
-In figura~\ref{fig:grafici_LvsP_e_ProbabilityVsN} viene graficato per 4 configurazioni diverse l'andamento della frazione del numero di qbit alterati in funzione del numero di qbit inviati. Il risultato è riportato, per comodità, anche in scala logaritmica.
+Utilizzando la classe \textit{Analyzer} è possibile fare diverse simulazioni cambiano i vari parametri. \\In figura~\ref{fig:grafici_LvsP_e_ProbabilityVsN} viene graficato per 4 configurazioni diverse l'andamento della frazione del numero di qbit alterati in funzione del numero di qbit inviati. Il risultato è riportato, per comodità, anche in scala logaritmica.
 \begin{figure}[htb!]
 \centering
 \includegraphics[width=0.9\linewidth]{grafici_LvsP_e_ProbabilityVsN.png}
@@ -204,9 +192,9 @@ In figura~\ref{fig:grafici_LvsP_e_ProbabilityVsN} viene graficato per 4 configur
 \end{figure}
 
 \clearpage
-\subsection{Trasmissione con qbit fisici e logici in presenza di rumore, senza Eve}
+\subsection{Confronto trasmissione con qbit fisici e logici in presenza di rumore, senza Eve}
 
-In figura ~\ref{fig:alteredvsnoise} Si mostrano i risultati ottenuti simulando fino a 50 qbit, con 1000 esperimenti senza Eve.
+In figura ~\ref{fig:alteredvsnoise} si mostrano i risultati ottenuti simulando fino a 50 qbit, con 1000 esperimenti senza Eve.
 Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
 
 \begin{figure}[htb!]
@@ -215,14 +203,13 @@ Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
 \caption{Simulazioni senza Eve al variare del rumore}
 \label{fig:alteredvsnoise}
 \end{figure}
-
 Si nota che nel caso di qbit logici la frazione di comunicazioni alterate è minore rispetto al caso di qbit fisici.
 Senza rumore ($\sigma=0$) l'utilizzo di qbit logici è inutile, in quanto già con qbit fisici il numero di comunicazioni alterate è nullo.
 Asintoticamente invece gli andamenti tendono a $\frac{1}{2}$, ovvero vengono alterati tutti i qbit utili alla comunicazione.
 
 \clearpage
-\subsection{Trasmissione con qbit logici, con Eve, variando il rumore}
-In figura ~\ref{fig:alteredvsnoiseeve} Si mostrano i risultati ottenuti simulando 50 qbit, con 1000 esperimenti senza Eve.
+\subsection{Trasmissione con qbit fisice e logici, con Eve, variando il rumore}
+In figura ~\ref{fig:alteredvsnoiseeve} si mostrano i risultati ottenuti simulando 50 qbit, con 1000 esperimenti con Eve.
 Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
 
 \begin{figure}[htb!]
@@ -231,7 +218,6 @@ Il rumore è gaussiano con una $\sigma$ che varia tra zero e $2,4$ radianti.
 \caption{Simulazioni con Eve al variare del rumore}
 \label{fig:alteredvsnoiseeve}
 \end{figure}
-
 Si nota che nel caso di qbit logici la frazione di comunicazioni alterate è minore rispetto al caso di qbit fisici.
 Come nel caso senza Eve, a $\sigma=0$ l'utilizzo di qbit logici è inutile e asintoticamente gli andamenti tendono a $\frac{1}{2}$.
 
@@ -250,7 +236,6 @@ Inoltre per rumori gaussiani con $\sigma>1.5$, anche senza intercettori la comun
 \label{fig:locical_eve_noeve}
 \end{figure}
 
-
 \subsection{Deviazione standard in funzione del rumore}
 Si studia infine l'andamento della larghezza della distribuzione della frazione di qbit alterati al variare del rumore.
 
@@ -262,5 +247,6 @@ Si studia infine l'andamento della larghezza della distribuzione della frazione 
 \end{figure}
 
 In figura~\ref{fig:devstVsNoise} l'andamento della varianza $\sigma^2$ della curva \textit{Naltered} (la seconda in basso in figura~\ref{fig:simulator}) per diversi rumori.
+
 
 \end{document}
