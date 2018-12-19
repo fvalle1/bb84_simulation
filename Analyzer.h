@@ -31,13 +31,13 @@ private:
     static Analyzer* fgAnalyzer;
 
     // functions called by RunSimulation and JoinResults
-    void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;
-    void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) const;
-    void PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) const;
-    void ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const;
-    void AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const;
-    void PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const;
-    void PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const;
+    void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;   // to fill mg_NalteredVsNsent and mg_ProbabilityVsNsent
+    void AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const;     // draw the multigraph mg_NalteredVsNsent
+    void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) const;                      // draw NAlteredVsN at N = Nfixed vs sigma_noise (for each simulation)
+    void ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const; // draw the probability to receive all qbits altered in Nsent qbits (for each simulation)
+    void PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const;              // draw the slope of linear fit vs sigma_noise (for each simulation). The lines fit probability to receive all qbits altered in Nsent qbits, represented in log scale
+    void PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const;     // collect the histograms fAlteredDistrName of each simulation on the same THStack
+    void PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) const;         // draw sigma_squared of TH1 fAlteredDistrName vs sigma_noise (for each simulation)
 
     void SetStyleMultiGraph(TGraphErrors *const *mg) const;
     void InitMultiGraph(TGraphErrors **NalteredVsError, const char *name) const;

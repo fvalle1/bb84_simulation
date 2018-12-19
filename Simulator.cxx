@@ -287,7 +287,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {  // get thing from file and plo
         auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(TString::Format("%s_%s", fAlteredDistrName, fConfiguration.fInfos.c_str())));
         if (NVsNHist_distr) NVsNHist_distr->SetDirectory(nullptr);
         auto UsefulHist = dynamic_cast<TH1D *>(file.Get(TString::Format("%s_%s", fUsefulPlotName, fConfiguration.fInfos.c_str())));
-        if (UsefulHist) UsefulHist->SetDirectory(nullptr);
+        if (UsefulHist) UsefulHist->SetDirectory(nullptr); // se sono istogrammi li faccio diventare miei (altrimenti poi spariscono quando chiudo il file)
         auto NSameBasisVsNqbit = dynamic_cast<TH1D*>(file.Get(TString::Format("%s_%s", fSameBasisHistName, fConfiguration.fInfos.c_str())));
         if (NSameBasisVsNqbit) NSameBasisVsNqbit->SetDirectory(nullptr);
 
@@ -340,8 +340,8 @@ void Simulator::SetStylesAndDraw(TObject *obj, const char *xLabel, const char *y
                                  Style_t markerStyle) {
     //draw objects based of what class they inherits from
     if (obj) {
-        std::cout<<std::endl<<"Plotting "<<obj->GetName()<<std::endl;
-        if(obj->InheritsFrom(TH1::Class())){
+        std::cout<<std::endl<<"Plotting "<<obj->GetName()<<std::endl;  // print name of this object
+        if(obj->InheritsFrom(TH1::Class())){                           // if the object is of a class which inherits from TH1
             dynamic_cast<TH1*>(obj)->SetLineWidth(linewidth);
             dynamic_cast<TH1*>(obj)->SetLineColor(color);
             dynamic_cast<TH1*>(obj)->Draw("hist same c");

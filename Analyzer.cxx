@@ -13,8 +13,8 @@ Analyzer* Analyzer::fgAnalyzer = nullptr;
 /// It calls the private constructor.
 Analyzer* Analyzer::Instance(std::vector<ConfigSimulation> VettInfos) {
     if(fgAnalyzer) {
-        fgAnalyzer->~Analyzer();
-        new(fgAnalyzer) Analyzer(VettInfos);
+        fgAnalyzer->~Analyzer();              // destry old analyzer
+        new(fgAnalyzer) Analyzer(VettInfos);  // create new analyzer in same space of memory, fgAnalyzer will point to it
     }else{
         fgAnalyzer = new Analyzer(VettInfos);
     }
@@ -26,7 +26,7 @@ Analyzer* Analyzer::Instance(std::vector<ConfigSimulation> VettInfos) {
 Analyzer::Analyzer(std::vector<ConfigSimulation> VettInfos) {
     fVettInfos = std::move(VettInfos);
 
-    gStyle->SetLegendBorderSize(1);
+    gStyle->SetLegendBorderSize(1);  // impostazioni che userò da qui in poi per tutte le simulazioni
     gStyle->SetLegendFillColor(0);
     gStyle->SetLegendFont(42);
     gStyle->SetOptStat(00000000);   // di default non mi stampa nessuna informazione
@@ -74,9 +74,9 @@ void Analyzer::JoinResults(TCanvas *cx, uint32_t fixedN) {
     cx->Divide(2,3); //separe leftRight
 
     AlteredVsSent(cx->cd(1), mg_NalteredVsNsent, fixedN);      // draw the multigraph mg_NalteredVsNsent
-    ProbabilityVsSent(cx->cd(3), file, mg_ProbabilityVsNsent); // draw the probability to receive some altered qbits in Nsent qbits (for each simulation)
+    ProbabilityVsSent(cx->cd(3), file, mg_ProbabilityVsNsent); // draw the probability to receive all qbits altered in Nsent qbits (for each simulation)
     PlotFunctionOfErrors(cx->cd(2), file, fixedN);             // draw NAlteredVsN at N = Nfixed vs sigma_noise (for each simulation)
-    PlotSlopeVsNoise(cx->cd(4), file);                         // draw the slope of linear fit vs sigma_noise (for each simulation). The lines fit probability to receive some altered qbits in Nsent qbits, represented in log scale
+    PlotSlopeVsNoise(cx->cd(4), file);                         // draw the slope of linear fit vs sigma_noise (for each simulation). The lines fit probability to receive all qbits altered in Nsent qbits, represented in log scale
     PlotNalteredDistributions(cx->cd(5), file);                // collect the histograms fAlteredDistrName of each simulation on the same THStack
     PlotFunctionOfAltered(cx->cd(6), file);                    // draw sigma_squared of TH1 fAlteredDistrName vs sigma_noise (for each simulation)
 
@@ -85,7 +85,7 @@ void Analyzer::JoinResults(TCanvas *cx, uint32_t fixedN) {
 }
 
 
-/// to draw the multigraph mg_NalteredVsNsent, with the legend and with an horizontal line at y=0.25
+/// cd(1)_ to draw the multigraph mg_NalteredVsNsent, with the legend and with an horizontal line at y=0.25
 void Analyzer::AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const {
     auto pad = cx->cd();
     mg_NalteredVsNsent->Draw("APL");
@@ -102,7 +102,7 @@ void Analyzer::AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, u
 }
 
 
-/// to draw (NAltered/Nsent)^Nsent = probability to receive some altered qbits in Nsent qbits, with legend.
+/// cd(3)_ to draw (NAltered/Nsent)^Nsent = probability to receive some altered qbits in Nsent qbits, with legend.
 void Analyzer::ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const {
     auto pad = cx->cd();
     pad->SetLogy();
@@ -117,7 +117,7 @@ void Analyzer::ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_P
 /// to fill multigraph with graphs taken from single simulation.
 /// It sets different colors and different markers depending on the use of logic qubits and the presence of Eve
 void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const {
-    TObject* g_tmpptr;
+    TObject* g_tmpptr;  //to read file
 
     for(const auto &config : fVettInfos) {
         Color_t color;
@@ -148,7 +148,7 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
 }
 
 
-/// It initializes 4 TGraphErrors wich will collect results of simulation:
+/// cd(2)_ It initializes 4 TGraphErrors wich will collect results of simulation:
 /// 1. P qbits_No Eve, 2. L qbits_No Eve, 3. P qbits_Eve, 4. L qbits_Eve.
 /// Then sets points and errors getting values of NAlteredVsN at N = Nfixed from the graph fNPlotName of each simulation,
 /// sets the style of these TGraphErrors. It creates a new multigraph, adds the 4 TGraphErrors and draws it.
@@ -189,7 +189,7 @@ void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) co
 }
 
 
-/// It initializes 4 TGraphErrors wich will collect results of simulation:
+/// cd(6)_ It initializes 4 TGraphErrors wich will collect results of simulation:
 /// 1. P qbits_No Eve, 2. L qbits_No Eve, 3. P qbits_Eve, 4. L qbits_Eve.
 /// Then sets points and errors getting values of sigma_squared and error_sigma_squared for each TH1 fAlteredDistrName
 /// of each simulation, sets the style of these TGraphErrors. It creates a new multigraph, adds the 4 TGraphErrors
@@ -239,7 +239,7 @@ void Analyzer::PlotFunctionOfAltered(TVirtualPad *cx, TFile *file) const{
 }
 
 
-/// to collect the histograms fAlteredDistrName of each simulation on the same THStack
+/// cd(5)_ to collect the histograms fAlteredDistrName of each simulation on the same THStack
 void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const {
     TObject* g_tmpptr = nullptr;
 
@@ -261,7 +261,7 @@ void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const {
 }
 
 
-/// It initializes 4 TGraphErrors wich will collect results of simulation:
+/// cd(4)_ It initializes 4 TGraphErrors wich will collect results of simulation:
 /// 1. P qbits_No Eve, 2. L qbits_No Eve, 3. P qbits_Eve, 4. L qbits_Eve.
 /// Then sets points and errors getting values of linear fit on TGraph fProbabilityPlotName of each simulation,
 /// sets the style of these TGraphErrors. So these TGraphErrors represent slope of the lines vs sigmas.

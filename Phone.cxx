@@ -45,7 +45,7 @@ void Phone::MakeCallClassicalChannel(Qbit *qbit, CommunicationInfos &data) {
         data.Ntot++;                                   // aggiorno contatore N sent
         if(fQbitA->GetBase() == qbit->GetBase()) {     // controllo che quello di Bob sia nella stessa base di quello di Alice
             if (*fQbitA == *qbit) {
-                data.SameBasisUntouched++;  //sono identici unouched
+                data.SameBasisUntouched++;  //sono identici untouched
             } else {
                 data.SameBasisAltered++;    //sono diversi altered
             }

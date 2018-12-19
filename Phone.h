@@ -18,7 +18,7 @@ public:
     Phone(const Phone& phone);
     ~Phone();
 
-    void InitResults(CommunicationInfos &data);                            // per salvare le informazioni nella struttura CommunicationInfos
+    void InitResults(CommunicationInfos &data);                       // per inizializzare la struttura CommunicationInfos
     void SetNewQbit(Qbit *qbitA);                                     // per assegnare a fQbitA il valore del qbit di ALice, per poter fare il confronto
     void MakeCallClassicalChannel(Qbit *qbit, CommunicationInfos &data);   // fa il confronto tra i qbit di Alice e Bob, restituisce un booleano: vero se sono uguali, falso se sono diversi
 

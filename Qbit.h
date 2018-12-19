@@ -37,8 +37,8 @@ public:
 
     void AddNoise(std::function<double()>);
 
-    bool operator==(const Qbit &qitCompared) const;
-    friend ostream& operator<<(ostream& os, Qbit q);
+    bool operator==(const Qbit &qitCompared) const;   // to compare qbits
+    friend ostream& operator<<(ostream& os, Qbit q);  // to print qbits
 
     static const bool DEBUG = false;
 

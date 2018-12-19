@@ -54,9 +54,9 @@ private:
     Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
 
 
-    void PlotPdfAtFixedNSent(TTree *tree);  //distribution of N altered one per N sent
-    void PlotNSameBasisVsNSent(TTree *tree);
-    void HistNaltered(TTree *);
+    void PlotPdfAtFixedNSent(TTree *tree);    // all distribution of N altered one per N sent (cd(5))
+    void PlotNSameBasisVsNSent(TTree *tree);  // TH1D Nsamebasis/Nsent vs. length of communication (cd(3))
+    void HistNaltered(TTree *);               // TH1D NAltered/NSameBasis vs. length of communication (cd(2))
 
     Channel** fChannels;
     ConfigSimulation fConfiguration;

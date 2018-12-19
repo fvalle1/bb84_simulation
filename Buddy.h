@@ -16,7 +16,7 @@ public:
     static void ReceiveQbit(Qbit *qbit);    //cambia base del qbit
     static void InterceptQbit(Qbit *qbit);  //intercetto qbit: Eve
 
-    static bool EveIsPresent;              //decido se eve deve intervenire o meno
+    static bool EveIsPresent;               //decido se Eve deve intervenire o meno
 };
 
 

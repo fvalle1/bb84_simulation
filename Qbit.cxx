@@ -109,7 +109,7 @@ void Qbit::MeasureState(base b) {
     PrepareTheta();
 }
 
-polarization Qbit::MeasurePhisicalqbit(int q) {
+polarization Qbit::MeasurePhisicalqbit(int q) {   // q = index of qbit we want measure
     double cosTheta = TMath::Cos(fTheta[q]);
     //Return the polarization of the object
     //if base is ZeroOne state is cos() |0> + sin() |1>
@@ -127,7 +127,7 @@ bool Qbit::operator==(const Qbit &qitCompared) const {
 }
 
 
-ostream& operator<<(ostream& os, const Qbit q){
+ostream& operator<<(ostream& os, const Qbit q){   //prende una referenza a un tipo ostrem e restituisce una referenza a un tipo ostream
     os << (q.fIsLogic?"logic":"physic") << " qbit"<< ", state: " <<q.fState << ", base: "<<q.fBase<<std::endl;
     for(int qbit = 0; qbit < q.fPhysicsQbits; qbit++) os <<"\ntheta "<< q.fTheta[qbit]<<std::endl<<std::endl<<std::endl;
     return os;

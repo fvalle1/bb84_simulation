@@ -9,7 +9,7 @@ class Channel{
 public:
     Channel();
     ~Channel();
-    void PassQbit(Qbit* qbit);                                  //trasmissione del qbit: prende il qbit, lo altera se il canale è rumoroso
+    void PassQbit(Qbit* qbit);     //trasmissione del qbit: prende il qbit, lo altera se il canale è rumoroso
     inline void SetNoisy(std::function<double(void)> pdfNoise) {if(pdfNoise) fPdf=std::move(pdfNoise);};
     inline bool IsNoisy() const {return fPdf? true: false;}; //se fPDF è nullptr il canale è non noisy
 
