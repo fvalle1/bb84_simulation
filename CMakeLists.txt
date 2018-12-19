@@ -45,7 +45,6 @@ add_executable(
 target_link_libraries(
         bb84
         Analyzer
-        curl
 )
 
 add_executable(various #DO NOT COMPILE
