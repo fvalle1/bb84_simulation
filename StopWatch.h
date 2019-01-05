@@ -10,7 +10,7 @@
 #include <chrono>
 #endif
 
-#if defined(_OPENMP)   // per fare calcolo parallelo         ---> PERCHÉ FACCIO TUTTO SIA CON <chrono>, SIA CON <omp.h> ???
+#if defined(_OPENMP)   // per fare calcolo parallelo
 #include <omp.h>       // Open MUltiprocessing
 #endif
 

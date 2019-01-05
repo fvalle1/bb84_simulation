@@ -86,9 +86,9 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
             for (uint32_t iqbit = 1; iqbit <= N; ++iqbit) {
                 Buddy::PrepareQbit(qbit);                           // Alice prepares the Qbit
                 phone->SetNewQbit(qbit);                            // Phone stores informations about the qbit
-                fChannels[0]->PassQbit(qbit);                       // qbit cross channel (A. to E.)
+                fChannels[0]->PassQbit(qbit);                       // qbit crosses channel (A. to E.)
                 Buddy::InterceptQbit(qbit);                         // Eve measures and reprepares the qbit
-                fChannels[1]->PassQbit(qbit);                       // qbit cross channel (E. to B.)
+                fChannels[1]->PassQbit(qbit);                       // qbit crosses channel (E. to B.)
                 Buddy::ReceiveQbit(qbit);                           // Bob measures the qbit
                 phone->MakeCallClassicalChannel(qbit, currentData); // Phone compares qbit of Alice and Bob
             }
@@ -108,7 +108,7 @@ Simulator* Simulator::RunSimulation(){                           // quando lanci
 
 
 /// To generate 3 groups of plots reading data from the Tree
-Simulator* Simulator::GeneratePlots() {                        //Genero i grafici che ci servono
+Simulator* Simulator::GeneratePlots() {                        // Genero i grafici che ci servono
     printf("\nGenerating plots..\n");
     TFile file(fFilename, "UPDATE");                           // continuo a scrivere sul file che già esiste
     if (file.IsZombie()) {                                     // NB i grafici possono essere generati anche in un secondo momento
@@ -136,10 +136,11 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     static CommunicationInfos currentData;
     data->SetAddress(&currentData);
 
-    auto NAlteredVsNSent = new TGraphErrors(fConfiguration.fNQbits);  //number of photons intercepted vs. number of photons measured in the same base
-    auto probabilityVsN = new TGraphErrors(fConfiguration.fNQbits);   //fraction of intercepted power N sent
-    auto probabilityVsN_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fConfiguration.fNQbits, 0);
-
+    auto NAlteredVsNSent = new TGraphErrors(fConfiguration.fNQbits);  // number of photons intercepted vs. number of photons measured in the same base
+    auto probabilityVsN = new TGraphErrors(fConfiguration.fNQbits);   // probability to observe almost one qbit altered in N sent
+    auto probabilityVsN_teo = new TF1(fProbabilityTeoPlotName, [](double*x, double*){return 1-TMath::Power(0.75, x[0]);}, 1, fConfiguration.fNQbits, 0);
+    auto fractionAlteredToN = new TGraphErrors(fConfiguration.fNQbits);   // log( fraction of intercepted power N sent)
+    auto fractionAlteredToN_teo = new TF1(fAlteredToNTeoPlotName, [](double*x, double*){return TMath::Power(0.25, x[0]);}, 1, fConfiguration.fNQbits, 0);
 
     // *** create histograms
     auto PdfperLenghtCom = new TH1D *[fConfiguration.fNQbits];
@@ -169,16 +170,22 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
         double currentMean, currentSigma;
 
         currentMean = PdfperLenghtCom[iqbit]->GetMean();
-        currentSigma = PdfperLenghtCom[iqbit]->GetStdDev();
+        currentSigma = PdfperLenghtCom[iqbit]->GetMeanError(1); // StaDev / sqrt(#effective entries)
 
         NAlteredVsNSent->SetPoint(iqbit, iqbit+1, currentMean);
         NAlteredVsNSent->SetPointError(iqbit, 0, currentSigma);
 
         int N = iqbit+1;
-        double p = TMath::Power(currentMean, N);     // mean ^N
-        probabilityVsN->SetPoint(iqbit, N, p);
-        double error = N*p/currentMean*currentSigma; // N * x^(N-1) * sigmaX (aka N * x^N / x * sigmaX)
-        probabilityVsN->SetPointError(iqbit, 0., error);
+        double p = TMath::Power(1-currentMean, N);       // (1-mean) ^N, (~ 0.75^N) = probability to not observe altered qbits during the entire communication
+        probabilityVsN->SetPoint(iqbit, N, 1-p);         // (~ 1-0.75^N) = probability to observe almost one altered qbit during the entire communication
+        double p_error = N*p/(1-currentMean)*currentSigma; // N * x^(N-1) * sigmaX (aka N * x^N / x * sigmaX)
+        probabilityVsN->SetPointError(iqbit, 0., p_error);
+
+        double q = TMath::Power(currentMean,N);             // mean^N (~0.25^N): probability to receive all qbits altered
+        fractionAlteredToN->SetPoint(iqbit, N, q);
+        double q_error = N*q/currentMean*currentSigma;      // N * x^(N-1) * sigmaX (aka N * x^N / x * sigmaX)
+        fractionAlteredToN->SetPointError(iqbit, 0., q_error);
+
     }
 
     // delete temporary histograms
@@ -194,12 +201,20 @@ void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     delete NAlteredVsNSent;
 
     probabilityVsN->SetNameTitle(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()));
-    probabilityVsN->Write(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);
+    probabilityVsN->Write(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);  // options: nel caso di collezioni di oggetti tengo una sola key, nel caso ci sia già una key con questo nome la sovrascrivo
     delete probabilityVsN;
 
     probabilityVsN_teo->SetNameTitle(fProbabilityTeoPlotName, fProbabilityTeoPlotName); //Note that teoric curve is not config dependent
     probabilityVsN_teo->Write(fProbabilityTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
     delete probabilityVsN_teo;
+
+    fractionAlteredToN->SetNameTitle(TString::Format("%s_%s", fAlteredToNPlotName, fConfiguration.fInfos.c_str()), TString::Format("%s_%s", fAlteredToNPlotName, fConfiguration.fInfos.c_str()));
+    fractionAlteredToN->Write(TString::Format("%s_%s", fAlteredToNPlotName, fConfiguration.fInfos.c_str()), TObject::kSingleKey | TObject::kOverwrite);  // options: nel caso di collezioni di oggetti tengo una sola key, nel caso ci sia già una key con questo nome la sovrascrivo
+    delete fractionAlteredToN;
+
+    fractionAlteredToN_teo->SetNameTitle(fAlteredToNTeoPlotName, fAlteredToNTeoPlotName); //Note that teoric curve is not config dependent
+    fractionAlteredToN_teo->Write(fAlteredToNTeoPlotName, TObject::kSingleKey | TObject::kOverwrite);
+    delete fractionAlteredToN_teo;
 }
 
 
@@ -271,7 +286,7 @@ void Simulator::HistNaltered(TTree * tree) {
 
 
 /// To draw plots on a Canvas
-Simulator* Simulator::ShowResults(TCanvas *cx) {  // get thing from file and plot them on cx
+Simulator* Simulator::ShowResults(TCanvas *cx) {  // gets things from file and plots them on cx
     printf("\nShowing results..\n");
     if (cx) {
         TFile file(fFilename, "READ");
@@ -283,6 +298,8 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {  // get thing from file and plo
 
         auto probVsNHist = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fProbabilityPlotName, fConfiguration.fInfos.c_str())));
         auto probVsNHist_teo = dynamic_cast<TF1*>(file.Get(fProbabilityTeoPlotName));
+        auto AlteredToNVsN = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fAlteredToNPlotName, fConfiguration.fInfos.c_str())));
+        auto AlteredToNVsN_teo = dynamic_cast<TF1*>(file.Get(fAlteredToNTeoPlotName));
         auto NalteredVsNsent = dynamic_cast<TGraphErrors*>(file.Get(TString::Format("%s_%s", fAlteredVsSentName, fConfiguration.fInfos.c_str())));
         auto NVsNHist_distr = dynamic_cast<TH1D*>(file.Get(TString::Format("%s_%s", fAlteredDistrName, fConfiguration.fInfos.c_str())));
         if (NVsNHist_distr) NVsNHist_distr->SetDirectory(nullptr);
@@ -304,12 +321,15 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {  // get thing from file and plo
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
         if(probVsNHist) probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
+        TLine line1;
+        Simulator::SetStylesAndDraw(&line1, "", "", kRed, 2);
+        line1.DrawLine(0., 1., fConfiguration.fNQbits, 1.);
 
         cx->cd(2);
         SetStylesAndDraw(NalteredVsNsent, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);
         TLine line2;
         Simulator::SetStylesAndDraw(&line2, "", "", kRed, 4);
-        line2.DrawLine(fConfiguration.fNQbits/2., -0.1, fConfiguration.fNQbits/2., 0.6);
+        line2.DrawLine(fConfiguration.fNQbits/2., 0.18, fConfiguration.fNQbits/2., 0.28);
 
         cx->cd(3);
         SetStylesAndDraw(NSameBasisVsNqbit, "Number_of_sent_qbits", "Percentage_of_qbits_with_same_base", kBlue, 2);
@@ -321,8 +341,10 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {  // get thing from file and plo
         line05.DrawLine(0, 0.5, fConfiguration.fNQbits,0.5);
 
         cx->cd(4)->SetLogy();
-        SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
-        SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
+        //SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
+        //SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
+        SetStylesAndDraw(AlteredToNVsN, "Number_of_sent_qbits", "Prob_to_receive_all_qbits_altered", kCyan - 3, 2);
+        SetStylesAndDraw(AlteredToNVsN_teo, "Number_of_sent_qbits_teo", "Prob_to_receive_all_qbits_altered_teo", kRed, 2);
 
         cx->cd(5);
         SetStylesAndDraw(NVsNHist_distr, "Number_of_sent_qbits", "Percentage_of_intercepted_qbits", kBlue, 2);

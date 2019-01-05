@@ -61,7 +61,7 @@ void Analyzer::JoinResults(TCanvas *cx, uint32_t fixedN) {
     auto mg_NalteredVsNsent = new TMultiGraph();
     auto mg_ProbabilityVsNsent = new TMultiGraph();
     mg_NalteredVsNsent->SetTitle("Logic_vs_Physic; Nsent; Naltered");
-    mg_ProbabilityVsNsent->SetTitle("Probability_vs_N; Nsent; Probability error");
+    mg_ProbabilityVsNsent->SetTitle("Prob_to_receive_all_qbits_altered_vs_N; Nsent; Probability");
 
     FillMultiGraphs(file, mg_NalteredVsNsent, mg_ProbabilityVsNsent);
 
@@ -98,16 +98,17 @@ void Analyzer::AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, u
 
     TLine line;
     Simulator::SetStylesAndDraw(&line, "", "", kBlue, 4);
-    line.DrawLine(fixed, -0.1, fixed, 0.6);
+    line.DrawLine(fixed, 0.0, fixed, 0.35);
 }
 
 
-/// cd(3)_ to draw (NAltered/Nsent)^Nsent = probability to receive some altered qbits in Nsent qbits, with legend.
+/// cd(3)_ to draw (NAltered/Nsent)^Nsent = probability to receive all qbits altered in Nsent qbits, with legend.
 void Analyzer::ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_ProbabilityVsNsent) const {
     auto pad = cx->cd();
     pad->SetLogy();
     mg_ProbabilityVsNsent->Draw("APL");
-    Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName)), "", "", kRed, 4, 0);
+    //Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName)), "", "", kRed, 4, 0);
+    Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fAlteredToNTeoPlotName)), "", "", kRed, 4, 0);
     auto leg = pad->BuildLegend();
     leg->SetEntrySeparation(0);
     leg->SetTextSize(0.05);
@@ -135,13 +136,13 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
         }
 
         g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(
-                TString::Format("%s_%s", Simulator::fProbabilityPlotName, config.fInfos.c_str())));
+                TString::Format("%s_%s", Simulator::fAlteredToNPlotName, config.fInfos.c_str())));
         if(g_tmpptr){
             if (config.fUseErrorCorrection) Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 23);
             else Simulator::SetStylesAndDraw(g_tmpptr, "", "", color, 2, 20);
             mg_ProbabilityVsNsent->Add(dynamic_cast<TGraphErrors*>(g_tmpptr));
         }else{
-            std::cerr << std::endl << g_tmpptr << "nullptr reading fProbabilityPlotName" << std::endl;
+            std::cerr << std::endl << g_tmpptr << "nullptr reading fAlteredToNPlotName" << std::endl;
         }
 
     }
@@ -251,7 +252,7 @@ void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const {
             dynamic_cast<TH1D*>(g_tmpptr)->SetDirectory(nullptr);
             st_Nusefuldistr->Add(dynamic_cast<TH1D *>(g_tmpptr));
         }else{
-            std::cerr << std::endl << "nullptr reading fProbabilityPlotName" << std::endl;
+            std::cerr << std::endl << "nullptr reading fAlteredDistrName" << std::endl;
         }
     }
 
@@ -263,7 +264,7 @@ void Analyzer::PlotNalteredDistributions(TVirtualPad *cx, TFile *file) const {
 
 /// cd(4)_ It initializes 4 TGraphErrors wich will collect results of simulation:
 /// 1. P qbits_No Eve, 2. L qbits_No Eve, 3. P qbits_Eve, 4. L qbits_Eve.
-/// Then sets points and errors getting values of linear fit on TGraph fProbabilityPlotName of each simulation,
+/// Then sets points and errors getting values of linear fit on TGraph fAlteredToNPlotName of each simulation,
 /// sets the style of these TGraphErrors. So these TGraphErrors represent slope of the lines vs sigmas.
 /// It creates a new multigraph, adds the 4 TGraphErrors and draws it.
 void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const {
@@ -276,7 +277,7 @@ void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const {
     int slopeVsNoiseCntr[4] = {0};
 
     for(const auto &config : fVettInfos) {
-        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fProbabilityPlotName, config.fInfos.c_str())));
+        g_tmpptr = dynamic_cast<TGraphErrors *> (file->Get(TString::Format("%s_%s", Simulator::fAlteredToNPlotName, config.fInfos.c_str())));
         if (g_tmpptr) {
             int iGraph = config.fUseErrorCorrection?1:0;
             if(config.fEveIsPresent) iGraph+=2;
@@ -286,7 +287,7 @@ void Analyzer::PlotSlopeVsNoise(TVirtualPad *cx, TFile *file) const {
             slopeVsNoise[iGraph]->SetPointError(slopeVsNoiseCntr[iGraph]++, 0, fit->GetParError(0));
             delete fit;
         }else{
-            std::cerr << std::endl << "nullptr reading fProbabilityPlotName" << std::endl;
+            std::cerr << std::endl << "nullptr reading fAlteredToNPlotName" << std::endl;
         }
     }
 

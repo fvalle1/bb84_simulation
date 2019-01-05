@@ -30,7 +30,7 @@ private:
 
     static Analyzer* fgAnalyzer;
 
-    // functions called by RunSimulation and JoinResults
+    // functions called by RunAnalyzer and JoinResults
     void FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMultiGraph *mg_ProbabilityVsNsent) const;   // to fill mg_NalteredVsNsent and mg_ProbabilityVsNsent
     void AlteredVsSent(TVirtualPad *cx, TMultiGraph *mg_NalteredVsNsent, uint32_t fixed) const;     // draw the multigraph mg_NalteredVsNsent
     void PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) const;                      // draw NAlteredVsN at N = Nfixed vs sigma_noise (for each simulation)

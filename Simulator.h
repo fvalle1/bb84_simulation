@@ -42,6 +42,8 @@ public:
     static constexpr const char* fBranchName = "branch_data_bb84";
     static constexpr const char* fProbabilityPlotName = "probability_vs_N";
     static constexpr const char* fProbabilityTeoPlotName = "probability_vs_N_teo";
+    static constexpr const char* fAlteredToNPlotName = "fractionAlteredToN_vs_N";
+    static constexpr const char* fAlteredToNTeoPlotName = "fractionAlteredToN_vs_N_teo";
     static constexpr const char* fAlteredDistrName = "Naltered_distr";
     static constexpr const char* fUsefulPlotName = "Nsame_Base_distr";
 
