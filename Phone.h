@@ -5,7 +5,7 @@
 #include "Qbit.h"
 #endif
 
-struct CommunicationInfos{           //informazioni da tenere
+struct CommunicationInfos{           // informazioni da tenere
     int Ntot;                    
     int SameBasisAltered;
     int SameBasisUntouched;

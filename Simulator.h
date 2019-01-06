@@ -53,7 +53,7 @@ private:
     Simulator();                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     Simulator(ConfigSimulation config);                  // costruttore privato --> non si può usare! Il Simulatpr verrà creato (una volta sola) solo con Instance()
     ~Simulator();
-    Simulator(const Simulator& source);             // impedisco a compilatore di creare copy constructor
+    Simulator(const Simulator& source);             // impedisco al compilatore di creare un copy constructor
 
 
     void PlotPdfAtFixedNSent(TTree *tree);    // all distribution of N altered one per N sent (cd(5))

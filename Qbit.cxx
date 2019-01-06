@@ -84,7 +84,7 @@ void Qbit::MeasureState(base b) {
 
     fBase = b;  //Qbit collapse to the base used for measure
 
-    //Measuring base PlusMinus is the same as measuring with a ZeroOne filter
+    // Measuring base PlusMinus is the same as measuring with a ZeroOne filter
     // a qubit rotated by 45grad anticlockwise
     if (b == PlusMinus) for(int iqbit = 0; iqbit < fPhysicsQbits; iqbit++) fTheta[iqbit] += TMath::PiOver4();
     if (!fIsLogic) { //if qbit is physical I simply measure it
@@ -105,7 +105,7 @@ void Qbit::MeasureState(base b) {
         }
     }
 
-    //after measure angle has to be set to inial condition
+    // after measure angle has to be set to inial condition
     PrepareTheta();
 }
 

@@ -74,8 +74,8 @@ void Analyzer::JoinResults(TCanvas *cx, uint32_t fixedN) {
     cx->Divide(2,3); //separe leftRight
 
     AlteredVsSent(cx->cd(1), mg_NalteredVsNsent, fixedN);      // draw the multigraph mg_NalteredVsNsent
-    ProbabilityVsSent(cx->cd(3), file, mg_ProbabilityVsNsent); // draw the probability to receive all qbits altered in Nsent qbits (for each simulation)
     PlotFunctionOfErrors(cx->cd(2), file, fixedN);             // draw NAlteredVsN at N = Nfixed vs sigma_noise (for each simulation)
+    ProbabilityVsSent(cx->cd(3), file, mg_ProbabilityVsNsent); // draw the probability to receive all qbits altered in Nsent qbits (for each simulation)
     PlotSlopeVsNoise(cx->cd(4), file);                         // draw the slope of linear fit vs sigma_noise (for each simulation). The lines fit probability to receive all qbits altered in Nsent qbits, represented in log scale
     PlotNalteredDistributions(cx->cd(5), file);                // collect the histograms fAlteredDistrName of each simulation on the same THStack
     PlotFunctionOfAltered(cx->cd(6), file);                    // draw sigma_squared of TH1 fAlteredDistrName vs sigma_noise (for each simulation)
@@ -107,7 +107,6 @@ void Analyzer::ProbabilityVsSent(TVirtualPad *cx, TFile *file, TMultiGraph *mg_P
     auto pad = cx->cd();
     pad->SetLogy();
     mg_ProbabilityVsNsent->Draw("APL");
-    //Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fProbabilityTeoPlotName)), "", "", kRed, 4, 0);
     Simulator::SetStylesAndDraw(dynamic_cast<TF1 *> (file->Get(Simulator::fAlteredToNTeoPlotName)), "", "", kRed, 4, 0);
     auto leg = pad->BuildLegend();
     leg->SetEntrySeparation(0);
@@ -149,10 +148,10 @@ void Analyzer::FillMultiGraphs(TFile *file, TMultiGraph *mg_NalteredVsNsent, TMu
 }
 
 
-/// cd(2)_ It initializes 4 TGraphErrors wich will collect results of simulation:
+/// cd(2)_ It initializes 4 TGraphErrors which will collect results of simulation:
 /// 1. P qbits_No Eve, 2. L qbits_No Eve, 3. P qbits_Eve, 4. L qbits_Eve.
-/// Then sets points and errors getting values of NAlteredVsN at N = Nfixed from the graph fNPlotName of each simulation,
-/// sets the style of these TGraphErrors. It creates a new multigraph, adds the 4 TGraphErrors and draws it.
+/// Then sets points and errors getting values of NAlteredVsN at N = Nfixed from the graph fAlteredVsSentName of each
+/// simulation, sets the style of these TGraphErrors. It creates a new multigraph, adds the 4 TGraphErrors and draws it.
 void Analyzer::PlotFunctionOfErrors(TVirtualPad *cx, TFile *file, int Nfixed) const {
 
     auto pad = cx->cd();

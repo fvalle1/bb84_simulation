@@ -128,7 +128,9 @@ Simulator* Simulator::GeneratePlots() {                        // Genero i grafi
 
 /// To create: 1) NAlteredVsNSent = TGraphErrors: NAltered/Nsent vs length of communication
 ///            2) probabilityVsN =  TGraphErrors: (Naltered/Nsent)^length of communication vs length of communication --> (~ 0.25^N)
-///            3) probabilityVsN_teo = TF1: 0.25^x
+///            3) probabilityVsN_teo = TF1: 1 - 0.75^x
+///            4) fractionAlteredToN = (fraction of qbits intercepted)^N sent vs N sent
+///            5) fractionAlteredToN_teo = TF1: 0.25^x
 /// and save them on the file
 void Simulator::PlotPdfAtFixedNSent(TTree *tree) {
     printf("\nExtimating means and sigmas of N altered distributions\n");
@@ -320,7 +322,7 @@ Simulator* Simulator::ShowResults(TCanvas *cx) {  // gets things from file and p
         cx->cd(1);
         SetStylesAndDraw(probVsNHist, "Number_of_sent_qbits", "Percentage_of_wrong_qbits", kCyan - 3, 2);
         SetStylesAndDraw(probVsNHist_teo, "Number_of_sent_qbits_teo", "Percentage_of_wrong_qbits_teo", kOrange, 2);
-        if(probVsNHist) probVsNHist->GetYaxis()->SetRangeUser(0,0.25);
+        if(probVsNHist) probVsNHist->GetYaxis()->SetRangeUser(0,1.1);
         TLine line1;
         Simulator::SetStylesAndDraw(&line1, "", "", kRed, 2);
         line1.DrawLine(0., 1., fConfiguration.fNQbits, 1.);
